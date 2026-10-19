@@ -1,0 +1,1825 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VueLexicon Pro | المترجم والقاموس الذكي لمطوري الويب و Nuxt UI</title>
+
+  <!-- Google Fonts: IBM Plex Sans Arabic & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            nuxt: {
+              primary: '#00DC82',
+              hover: '#00b86b',
+              deep: '#020420',
+              slate: '#0F172A',
+              olive: '#111c18',
+              navy: '#0b1324',
+              border: '#1e332c',
+              dropdown: '#081022'
+            }
+          },
+          fontFamily: {
+            arabic: ['"IBM Plex Sans Arabic"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          },
+          boxShadow: {
+            glow: '0 0 30px -5px rgba(0, 220, 130, 0.25)',
+            'glow-sm': '0 0 15px -3px rgba(0, 220, 130, 0.2)',
+            'glow-lg': '0 0 45px -5px rgba(0, 220, 130, 0.35)'
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Vue.js 3 Production CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+
+  <style>
+    [v-cloak] { display: none !important; }
+
+    body {
+      font-family: 'IBM Plex Sans Arabic', sans-serif;
+      background-color: #020420;
+      background-image: 
+        radial-gradient(at 15% 10%, rgba(0, 220, 130, 0.09) 0px, transparent 45%),
+        radial-gradient(at 85% 20%, rgba(6, 78, 59, 0.14) 0px, transparent 50%),
+        radial-gradient(at 50% 90%, rgba(15, 23, 42, 0.9) 0px, transparent 60%);
+      background-attachment: fixed;
+      color: #f1f5f9;
+      overflow-x: hidden;
+    }
+
+    .code-font {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Strict Bi-Directional Input Rule for Search */
+    .smart-search-input {
+      direction: ltr;
+      text-align: right;
+      unicode-bidi: plaintext;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #020420;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e332c;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #00DC82;
+    }
+
+    .glow-border {
+      border: 1px solid #1e332c;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .glow-border:hover, .glow-border-active {
+      border-color: #00DC82;
+      box-shadow: 0 0 30px -5px rgba(0, 220, 130, 0.25);
+    }
+
+    /* Syntax Highlighting Colors */
+    .tok-kw { color: #c084fc; font-weight: 600; }
+    .tok-fn { color: #38bdf8; }
+    .tok-str { color: #4ade80; }
+    .tok-tag { color: #00DC82; font-weight: 600; }
+    .tok-attr { color: #fbbf24; }
+    .tok-com { color: #64748b; font-style: italic; }
+    .tok-num { color: #f472b6; }
+
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.7; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.06); }
+    }
+    .animate-pulse-glow {
+      animation: pulseGlow 2.4s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-[#00DC82] selection:text-[#020420]">
+
+<div id="app" v-cloak class="flex-1 flex flex-col">
+
+  <!-- ================= HEADER ================= -->
+  <header class="sticky top-0 z-50 backdrop-blur-xl bg-[#020420]/85 border-b border-[#1e332c] transition-all">
+    <div class="max-w-[1440px] mx-auto px-4 sm:px-6 h-20 flex items-center justify-between gap-4">
+      
+      <!-- Brand Logo & Title -->
+      <div class="flex items-center gap-3.5 cursor-pointer group" @click="appMode = 'dictionary'; resetFilters()">
+        <!-- Custom Inline SVG Logo inspired by Vue.js & Nuxt with <V/> inside -->
+        <div class="relative w-12 h-12 rounded-2xl bg-gradient-to-br from-[#111c18] to-[#0b1324] border border-[#1e332c] group-hover:border-[#00DC82] flex items-center justify-center shadow-glow transition-all">
+          <svg class="w-9 h-9" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="vueGradOuter" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#00DC82" />
+                <stop offset="100%" stop-color="#064E3B" />
+              </linearGradient>
+              <linearGradient id="vueGradInner" x1="16" y1="8" x2="48" y2="52" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#34D399" />
+                <stop offset="100%" stop-color="#022C22" />
+              </linearGradient>
+            </defs>
+            <!-- Outer Vue Triangle -->
+            <path d="M6 10L32 56L58 10H46.5L32 35.5L17.5 10H6Z" fill="url(#vueGradOuter)" />
+            <!-- Inner Intersecting Triangle -->
+            <path d="M17.5 10L32 36L46.5 10H38.5L32 21.5L25.5 10H17.5Z" fill="url(#vueGradInner)" />
+            <!-- Code & Translation Badge <V/> -->
+            <rect x="13" y="34" width="38" height="19" rx="5" fill="#020420" stroke="#00DC82" stroke-width="1.6"/>
+            <text x="32" y="47" text-anchor="middle" fill="#00DC82" font-family="JetBrains Mono, monospace" font-weight="700" font-size="11.5">&lt;V/&gt;</text>
+          </svg>
+          <span class="absolute -bottom-1 -left-1 w-3 h-3 rounded-full bg-[#00DC82] ring-4 ring-[#020420]"></span>
+        </div>
+
+        <div>
+          <div class="flex items-center gap-2.5">
+            <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center gap-1.5">
+              <span>VueLexicon</span>
+              <span class="text-xs font-mono uppercase px-2 py-0.5 rounded-full bg-[#00DC82]/15 text-[#00DC82] border border-[#00DC82]/40">Pro v3</span>
+            </h1>
+            <!-- Total Supported Terms Badge -->
+            <span class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#111c18] text-emerald-300 border border-[#1e332c]">
+              <span class="w-1.5 h-1.5 rounded-full bg-[#00DC82] animate-ping"></span>
+              <span v-text="allHydratedTerms.length + '+ مصطلح ومكون'"></span>
+            </span>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">المترجم والقاموس التفاعلي الشامل لمطوري الويب ومستشار Nuxt UI</p>
+        </div>
+      </div>
+
+      <!-- Mode Switcher & Quick Actions -->
+      <div class="flex items-center gap-2.5">
+        <!-- Dictionary Mode Button -->
+        <button 
+          @click="appMode = 'dictionary'"
+          :class="appMode === 'dictionary' 
+            ? 'bg-[#00DC82] text-[#020420] font-bold shadow-glow' 
+            : 'bg-[#0F172A] text-slate-300 hover:text-white border border-[#1e332c] hover:border-[#00DC82]/50'"
+          class="px-3.5 py-2 rounded-xl text-xs sm:text-sm transition-all flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+          </svg>
+          <span>القاموس والمترجم</span>
+        </button>
+
+        <!-- Nuxt UI Advisor & Playground Mode Button -->
+        <button 
+          @click="appMode = 'playground'"
+          :class="appMode === 'playground' 
+            ? 'bg-[#00DC82] text-[#020420] font-bold shadow-glow' 
+            : 'bg-[#111c18] text-[#00DC82] hover:bg-[#00DC82]/15 border border-[#00DC82]/40'"
+          class="px-3.5 py-2 rounded-xl text-xs sm:text-sm transition-all flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/>
+          </svg>
+          <span>معمل ومستشار Nuxt UI</span>
+          <span class="hidden md:inline-block px-1.5 py-0.5 text-[10px] rounded bg-[#020420]/30 font-mono">v3</span>
+        </button>
+
+        <!-- Bookmarks Quick Toggle -->
+        <button 
+          @click="toggleBookmarksFilter"
+          :class="selectedCategory === 'Bookmarks' && appMode === 'dictionary'
+            ? 'bg-amber-400/20 text-amber-300 border-amber-400/60'
+            : 'bg-[#0F172A] text-slate-300 border-[#1e332c] hover:border-amber-400/40'"
+          class="px-3 py-2 rounded-xl text-xs sm:text-sm border transition-all flex items-center gap-1.5"
+          title="المصطلحات المحفوظة في المفضلة">
+          <span class="text-amber-400 text-base leading-none">★</span>
+          <span class="hidden lg:inline">المفضلة</span>
+          <span class="font-mono text-xs px-1.5 py-0.2 rounded-full bg-black/40 text-amber-300" v-text="bookmarks.length"></span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ================= SMART AUTOCOMPLETE SEARCH SECTION (relative z-40) ================= -->
+  <section class="relative z-40 pt-6 pb-4 px-4 sm:px-6 max-w-[1440px] w-full mx-auto">
+    <div class="max-w-4xl mx-auto">
+      
+      <!-- Search Container -->
+      <div ref="searchContainerRef" class="relative">
+        <div 
+          :class="isSearchFocused ? 'border-[#00DC82] shadow-glow-lg' : 'border-[#1e332c] hover:border-[#00DC82]/60 shadow-glow'"
+          class="relative flex items-center w-full rounded-2xl bg-gradient-to-l from-[#0F172A] via-[#0b1324] to-[#111c18] border-2 transition-all duration-200">
+          
+          <!-- Right Side: Green Magnifying Glass Icon 🔍 -->
+          <div class="pr-4 pl-2 flex items-center pointer-events-none text-[#00DC82]">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 103.5 10.5a7.5 7.5 0 0013.15 6.15z" />
+            </svg>
+          </div>
+
+          <!-- Search Input with strict direction: ltr; text-align: right; unicode-bidi: plaintext; -->
+          <input
+            ref="searchInputRef"
+            v-model="searchQuery"
+            @focus="openDropdown"
+            @input="onSearchInput"
+            @keydown.down.prevent="moveHighlight(1)"
+            @keydown.up.prevent="moveHighlight(-1)"
+            @keydown.enter.prevent="selectHighlighted"
+            @keydown.esc.prevent="closeDropdown"
+            type="text"
+            placeholder="ابحث بالإنجليزية أو العربية (مثال: computed, UButton, دالة, جدول, شبكة, تفاعلي)..."
+            class="smart-search-input w-full py-4 pr-2 pl-28 bg-transparent text-white placeholder-slate-400 text-base sm:text-lg focus:outline-none font-medium"
+          />
+
+          <!-- Left Side: Clear Button ✕ & Ctrl + K Shortcut Badge -->
+          <div class="absolute left-3 flex items-center gap-2" dir="ltr">
+            <kbd 
+              @click="focusSearch"
+              class="hidden sm:inline-flex items-center gap-1 px-2 py-1 text-[11px] font-mono font-semibold text-slate-300 bg-[#020420]/90 border border-[#1e332c] rounded-lg cursor-pointer hover:border-[#00DC82]/50">
+              <span>Ctrl</span>
+              <span>+</span>
+              <span>K</span>
+            </kbd>
+            <button
+              v-if="searchQuery.trim().length > 0"
+              @click="clearSearch"
+              type="button"
+              title="مسح النص"
+              class="w-7 h-7 rounded-lg bg-slate-800/90 hover:bg-rose-500/20 text-slate-300 hover:text-rose-400 border border-slate-700 hover:border-rose-500/40 flex items-center justify-center transition-all">
+              ✕
+            </button>
+          </div>
+        </div>
+
+        <!-- Instant Autocomplete Dropdown (z-50, solid dark bg-[#081022]) -->
+        <div
+          v-if="showDropdown && searchQuery.trim().length > 0"
+          class="absolute left-0 right-0 mt-2 z-50 bg-[#081022] border-2 border-[#00DC82]/70 rounded-2xl shadow-[0_25px_70px_-10px_rgba(0,0,0,0.95)] overflow-hidden">
+          
+          <!-- Dropdown Header -->
+          <div class="px-4 py-2.5 bg-[#020420] border-b border-[#1e332c] flex items-center justify-between text-xs text-slate-400">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-[#00DC82]"></span>
+              <span v-if="!isUsingFallback">اقتراحات فورية ذكية (<span v-text="autocompleteSuggestions.length"></span> نتيجة مطابقة)</span>
+              <span v-else class="text-amber-300">المترجم الذكي الاحتياطي (Smart Dynamic Fallback نشط)</span>
+            </div>
+            <div class="hidden sm:flex items-center gap-3 font-mono text-[11px]" dir="ltr">
+              <span>↑↓ للتنقل</span>
+              <span>Enter للاختيار</span>
+              <span>Esc للإغلاق</span>
+            </div>
+          </div>
+
+          <!-- Suggestions List -->
+          <div class="max-h-80 overflow-y-auto divide-y divide-[#1e332c]/60">
+            <button
+              v-for="(item, idx) in autocompleteSuggestions"
+              :key="item.id"
+              type="button"
+              @click="chooseTermFromDropdown(item)"
+              @mouseenter="highlightedIndex = idx"
+              :class="highlightedIndex === idx ? 'bg-[#111c18] border-r-4 border-[#00DC82]' : 'hover:bg-[#0F172A]/80'"
+              class="w-full px-4 py-3 text-right transition-all flex items-center justify-between gap-3">
+              
+              <!-- Right side: Term & Arabic Brief -->
+              <div class="flex items-center gap-3 min-w-0">
+                <span 
+                  dir="ltr" 
+                  class="code-font text-sm sm:text-base font-bold text-[#00DC82] bg-[#020420] px-2.5 py-1 rounded-lg border border-[#1e332c] shrink-0"
+                  v-text="item.term">
+                </span>
+                <div class="truncate">
+                  <p class="text-sm font-semibold text-white truncate" v-text="item.arabicTitle"></p>
+                  <p class="text-xs text-slate-400 truncate" v-text="item.description"></p>
+                </div>
+              </div>
+
+              <!-- Left side: Category Colored Badge -->
+              <div class="flex items-center gap-2 shrink-0">
+                <span 
+                  :class="getCategoryBadgeClass(item.category)"
+                  class="px-2.5 py-1 rounded-lg text-xs font-mono font-semibold border"
+                  dir="ltr"
+                  v-text="item.category">
+                </span>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Popular Search Chips -->
+      <div class="mt-3 flex flex-wrap items-center justify-center gap-2 text-xs">
+        <span class="text-slate-400">بحث سريع:</span>
+        <button 
+          v-for="chip in quickChips" 
+          :key="chip.label"
+          @click="applyQuickChip(chip.query)"
+          class="px-2.5 py-1 rounded-full bg-[#0F172A] hover:bg-[#111c18] text-slate-300 hover:text-[#00DC82] border border-[#1e332c] hover:border-[#00DC82]/50 transition-all flex items-center gap-1">
+          <span v-text="chip.label"></span>
+        </button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================= DICTIONARY MODE ================= -->
+  <template v-if="appMode === 'dictionary'">
+
+    <!-- ================= CATEGORY TABS & A-Z DIRECTORY (relative z-10) ================= -->
+    <section class="relative z-10 max-w-[1440px] w-full mx-auto px-4 sm:px-6 pb-4 space-y-3">
+      
+      <!-- Category Filter Tabs -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+        <button
+          v-for="cat in categoriesList"
+          :key="cat.key"
+          @click="selectCategory(cat.key)"
+          :class="selectedCategory === cat.key
+            ? 'bg-[#00DC82] text-[#020420] font-bold border-[#00DC82] shadow-glow-sm'
+            : 'bg-[#0F172A]/90 text-slate-300 hover:text-white border-[#1e332c] hover:border-[#00DC82]/50'"
+          class="px-3.5 py-2 rounded-xl text-xs sm:text-sm border transition-all flex items-center gap-2 shrink-0">
+          <span v-text="cat.label"></span>
+          <span 
+            :class="selectedCategory === cat.key ? 'bg-[#020420]/25 text-[#020420]' : 'bg-[#020420] text-[#00DC82]'"
+            class="px-2 py-0.5 rounded-full text-xs font-mono font-bold"
+            v-text="getCategoryCount(cat.key)">
+          </span>
+        </button>
+      </div>
+
+      <!-- A-Z English Alphabet Bar (dir="ltr") -->
+      <div dir="ltr" class="p-2 rounded-2xl bg-[#0F172A]/80 border border-[#1e332c] backdrop-blur-xl flex items-center gap-1 overflow-x-auto">
+        <button
+          @click="selectedLetter = 'ALL'"
+          :class="selectedLetter === 'ALL'
+            ? 'bg-[#00DC82] text-[#020420] font-bold shadow-glow-sm'
+            : 'bg-[#020420] text-slate-300 hover:text-[#00DC82] border border-[#1e332c]'"
+          class="px-3 py-1.5 rounded-xl code-font text-xs font-bold transition-all shrink-0">
+          ALL
+        </button>
+
+        <button
+          v-for="letter in alphabet"
+          :key="letter"
+          @click="selectLetter(letter)"
+          :class="[
+            selectedLetter === letter
+              ? 'bg-[#00DC82] text-[#020420] font-bold shadow-glow-sm'
+              : hasTermsForLetter(letter)
+                ? 'bg-[#0b1324] text-slate-200 hover:border-[#00DC82]/60 hover:text-[#00DC82] border border-[#1e332c]'
+                : 'bg-[#020420]/40 text-slate-600 border border-transparent cursor-pointer hover:text-slate-400'
+          ]"
+          class="relative w-8 h-8 rounded-xl code-font text-xs font-semibold flex flex-col items-center justify-center transition-all shrink-0">
+          <span v-text="letter"></span>
+          <!-- Small green dot under letters that have terms in active category -->
+          <span 
+            v-if="hasTermsForLetter(letter)"
+            :class="selectedLetter === letter ? 'bg-[#020420]' : 'bg-[#00DC82]'"
+            class="w-1.5 h-1.5 rounded-full mt-0.5">
+          </span>
+        </button>
+      </div>
+
+    </section>
+
+    <!-- ================= MASTER-DETAIL SPLIT VIEW (grid-cols-12) ================= -->
+    <main class="relative z-10 flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-6 pb-12">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- RIGHT COLUMN: Master Sidebar List (4 columns on large screens) -->
+        <aside class="lg:col-span-4 bg-[#0F172A]/90 border border-[#1e332c] rounded-2xl overflow-hidden shadow-glow backdrop-blur-xl flex flex-col max-h-[760px]">
+          
+          <!-- Sidebar Header -->
+          <div class="p-4 bg-gradient-to-l from-[#111c18] to-[#0b1324] border-b border-[#1e332c] flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-[#00DC82]"></span>
+              <h2 class="font-bold text-sm sm:text-base text-white">قائمة المصطلحات والمكونات</h2>
+            </div>
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-mono bg-[#020420] text-[#00DC82] border border-[#1e332c]" v-text="filteredTerms.length + ' عنصر'"></span>
+          </div>
+
+          <!-- Scrollable List of Terms -->
+          <div class="flex-1 overflow-y-auto divide-y divide-[#1e332c]/60 p-2 space-y-1.5">
+            <button
+              v-for="item in filteredTerms"
+              :key="item.id"
+              @click="selectTerm(item)"
+              :class="activeTerm && activeTerm.id === item.id
+                ? 'bg-gradient-to-l from-[#111c18] to-[#0b1324] border-[#00DC82] shadow-glow-sm'
+                : 'bg-[#020420]/50 hover:bg-[#0b1324] border-[#1e332c]/80'"
+              class="w-full p-3 rounded-xl border text-right transition-all flex items-start justify-between gap-2 group">
+              
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2">
+                  <span 
+                    dir="ltr" 
+                    class="code-font text-sm font-bold text-[#00DC82] group-hover:translate-x-0.5 transition-transform truncate"
+                    v-text="item.term">
+                  </span>
+                  <span v-if="isBookmarked(item.id)" class="text-amber-400 text-xs" title="في المفضلة">★</span>
+                  <span v-if="item.isFallback" class="px-1.5 py-0.5 text-[10px] rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">مترجم ذكي</span>
+                </div>
+                <p class="text-xs sm:text-sm font-semibold text-slate-200 mt-1 truncate" v-text="item.arabicTitle"></p>
+                <p class="text-[11px] text-slate-400 mt-0.5 line-clamp-1" v-text="item.description"></p>
+              </div>
+
+              <div class="flex flex-col items-end gap-1.5 shrink-0">
+                <span 
+                  dir="ltr"
+                  :class="getCategoryBadgeClass(item.category)"
+                  class="px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold border"
+                  v-text="item.category">
+                </span>
+                <span dir="ltr" class="text-[10px] font-mono text-slate-500 px-1.5 py-0.5 rounded bg-[#020420]" v-text="'#' + item.letter"></span>
+              </div>
+            </button>
+          </div>
+        </aside>
+
+        <!-- LEFT COLUMN: Detailed Term View Card (8 columns on large screens) -->
+        <section v-if="activeTerm" class="lg:col-span-8 space-y-6">
+          
+          <!-- Main Detail Card -->
+          <div class="bg-[#0F172A]/95 border border-[#1e332c] rounded-3xl p-5 sm:p-7 shadow-glow backdrop-blur-xl space-y-6">
+            
+            <!-- Card Header -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-[#1e332c]">
+              <div class="space-y-2">
+                <div class="flex flex-wrap items-center gap-2.5">
+                  <!-- Category Badge -->
+                  <span 
+                    dir="ltr"
+                    :class="getCategoryBadgeClass(activeTerm.category)"
+                    class="px-3 py-1 rounded-xl text-xs font-mono font-bold border"
+                    v-text="activeTerm.category">
+                  </span>
+                  <!-- Alphabet Letter Index Badge -->
+                  <span dir="ltr" class="px-2.5 py-1 rounded-xl text-xs font-mono font-bold bg-[#020420] text-[#00DC82] border border-[#1e332c]">
+                    Index: <span v-text="activeTerm.letter"></span>
+                  </span>
+                  <span v-if="activeTerm.isFallback" class="px-2.5 py-1 rounded-xl text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                    ⚡ توليد فوري بالمترجم الذكي الاحتياطي
+                  </span>
+                </div>
+
+                <!-- Large Monospace Term Name (dir="ltr") & Arabic Title -->
+                <div class="flex flex-wrap items-baseline gap-4 pt-1">
+                  <h2 
+                    dir="ltr" 
+                    class="code-font text-2xl sm:text-4xl font-extrabold text-[#00DC82] tracking-tight bg-[#020420] px-4 py-2 rounded-2xl border border-[#1e332c] shadow-glow-sm"
+                    v-text="activeTerm.term">
+                  </h2>
+                  <h3 class="text-xl sm:text-2xl font-bold text-white" v-text="activeTerm.arabicTitle"></h3>
+                </div>
+              </div>
+
+              <!-- Action Buttons: Bookmark ★ & Official Docs ↗ -->
+              <div class="flex items-center gap-2.5 self-start sm:self-center shrink-0">
+                <button
+                  @click="toggleBookmark(activeTerm.id)"
+                  :class="isBookmarked(activeTerm.id)
+                    ? 'bg-amber-400/20 text-amber-300 border-amber-400 shadow-glow-sm'
+                    : 'bg-[#020420] text-slate-300 hover:text-amber-300 border-[#1e332c] hover:border-amber-400/50'"
+                  class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold border transition-all flex items-center gap-2">
+                  <span class="text-base leading-none" v-text="isBookmarked(activeTerm.id) ? '★' : '☆'"></span>
+                  <span v-text="isBookmarked(activeTerm.id) ? 'محفوظ في المفضلة' : 'حفظ في المفضلة'"></span>
+                </button>
+
+                <a
+                  :href="activeTerm.docs"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-[#111c18] hover:bg-[#00DC82] text-[#00DC82] hover:text-[#020420] border border-[#00DC82]/40 transition-all flex items-center gap-1.5">
+                  <span>التوثيق الرسمي</span>
+                  <span dir="ltr" class="font-mono text-xs">Docs ↗</span>
+                </a>
+              </div>
+            </div>
+
+            <!-- 3 Cheat Sheet Mini Badges -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+              <!-- 1. Syntax & Closing / Declaration Type -->
+              <div class="p-3.5 rounded-2xl bg-gradient-to-br from-[#111c18] to-[#0b1324] border border-[#1e332c]">
+                <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+                  <span>الصيغة ونوع التصريح / الإغلاق</span>
+                  <span class="text-[#00DC82] font-mono">&lt;/&gt;</span>
+                </div>
+                <p dir="ltr" class="code-font text-xs sm:text-sm font-semibold text-emerald-300 text-right" v-text="activeTerm.syntaxInfo"></p>
+              </div>
+
+              <!-- 2. Return Type / Important Props -->
+              <div class="p-3.5 rounded-2xl bg-gradient-to-br from-[#111c18] to-[#0b1324] border border-[#1e332c]">
+                <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+                  <span>القيمة المرجعة / أهم الخصائص</span>
+                  <span class="text-sky-400 font-mono">⇒ {}</span>
+                </div>
+                <p dir="ltr" class="code-font text-xs sm:text-sm font-semibold text-sky-300 text-right" v-text="activeTerm.returnInfo"></p>
+              </div>
+
+              <!-- 3. Environment & Compatibility -->
+              <div class="p-3.5 rounded-2xl bg-gradient-to-br from-[#111c18] to-[#0b1324] border border-[#1e332c]">
+                <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+                  <span>بيئة العمل والتوافق</span>
+                  <span class="text-purple-400 font-mono">ENV</span>
+                </div>
+                <p class="text-xs sm:text-sm font-semibold text-purple-300" v-text="activeTerm.environment"></p>
+              </div>
+            </div>
+
+            <!-- Functional Meaning & Arabic Explanation -->
+            <div class="p-5 rounded-2xl bg-[#020420]/80 border border-[#1e332c] space-y-2">
+              <h4 class="text-sm font-bold text-[#00DC82] flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span>الترجمة والمعنى الوظيفي بالتفصيل:</span>
+              </h4>
+              <p class="text-slate-200 text-sm sm:text-base leading-relaxed" v-text="activeTerm.description"></p>
+            </div>
+
+            <!-- When to use in real projects (Use Cases) -->
+            <div class="p-5 rounded-2xl bg-[#0b1324]/90 border border-[#1e332c] space-y-3">
+              <h4 class="text-sm font-bold text-amber-300 flex items-center gap-2">
+                <span>💡 متى نستخدمها في المشاريع الحقيقية؟ (Use Cases)</span>
+              </h4>
+              <ul class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                <li 
+                  v-for="(useCase, uIdx) in activeTerm.useCases" 
+                  :key="uIdx"
+                  class="flex items-start gap-2.5 text-xs sm:text-sm text-slate-300 bg-[#020420]/60 p-3 rounded-xl border border-[#1e332c]/60">
+                  <span class="text-[#00DC82] font-bold mt-0.5">✔</span>
+                  <span v-text="useCase"></span>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Detail Inner Tabs: Tab 1 (Practical Code + Live Interactive Preview) | Tab 2 (Vanilla JS vs Vue 3 Comparison) -->
+            <div class="space-y-4">
+              <div class="flex items-center gap-2 border-b border-[#1e332c] pb-3">
+                <button
+                  @click="detailTab = 'code_preview'"
+                  :class="detailTab === 'code_preview'
+                    ? 'bg-[#00DC82] text-[#020420] font-bold shadow-glow-sm'
+                    : 'bg-[#020420] text-slate-300 hover:text-white border border-[#1e332c]'"
+                  class="px-4 py-2 rounded-xl text-xs sm:text-sm transition-all flex items-center gap-2">
+                  <span>1. الكود العملي + المعاينة الحية التفاعلية</span>
+                </button>
+
+                <button
+                  @click="detailTab = 'comparison'"
+                  :class="detailTab === 'comparison'
+                    ? 'bg-[#00DC82] text-[#020420] font-bold shadow-glow-sm'
+                    : 'bg-[#020420] text-slate-300 hover:text-white border border-[#1e332c]'"
+                  class="px-4 py-2 rounded-xl text-xs sm:text-sm transition-all flex items-center gap-2">
+                  <span>2. مقارنة سريعة: Vanilla JS vs Vue 3</span>
+                </button>
+              </div>
+
+              <!-- TAB 1: Practical Code + Live Interactive Preview Side-by-Side -->
+              <div v-if="detailTab === 'code_preview'" class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                
+                <!-- Code Box (dir="ltr") -->
+                <div class="rounded-2xl bg-[#020420] border border-[#1e332c] overflow-hidden flex flex-col">
+                  <div class="px-4 py-2.5 bg-[#0b1324] border-b border-[#1e332c] flex items-center justify-between">
+                    <div class="flex items-center gap-1.5" dir="ltr">
+                      <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                      <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+                      <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                      <span class="ml-2 text-xs font-mono text-slate-400" v-text="activeTerm.category + ' Example'"></span>
+                    </div>
+                    <button
+                      @click="copyCode(activeTerm.codeExample)"
+                      class="px-3 py-1 rounded-lg text-xs font-mono bg-[#111c18] hover:bg-[#00DC82] text-[#00DC82] hover:text-[#020420] border border-[#00DC82]/40 transition-all flex items-center gap-1.5">
+                      <span v-text="copiedToast ? '✓ تم النسخ!' : 'Copy نسخ الكود'"></span>
+                    </button>
+                  </div>
+                  <pre dir="ltr" class="p-4 text-xs sm:text-sm code-font overflow-x-auto leading-relaxed flex-1 text-left"><code v-html="highlightCode(activeTerm.codeExample)"></code></pre>
+                </div>
+
+                <!-- Live Interactive Preview Box -->
+                <div class="rounded-2xl bg-gradient-to-br from-[#0b1324] to-[#111c18] border border-[#1e332c] overflow-hidden flex flex-col justify-between">
+                  <div class="px-4 py-2.5 bg-[#020420]/70 border-b border-[#1e332c] flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                      <span class="w-2 h-2 rounded-full bg-[#00DC82] animate-ping"></span>
+                      <span class="text-xs font-bold text-white">المعاينة الحية التفاعلية (Live Sandbox)</span>
+                    </div>
+                    <button
+                      @click="resetInteractiveDemo"
+                      class="text-[11px] text-slate-400 hover:text-[#00DC82] transition-colors">
+                      إعادة ضبط المعاينة ↺
+                    </button>
+                  </div>
+
+                  <!-- Dynamic Visual & Interactive Sandbox Area -->
+                  <div class="p-5 flex-1 flex flex-col justify-between gap-4">
+                    <div class="p-4 rounded-xl bg-[#020420]/90 border border-[#1e332c] min-h-[130px] flex flex-col items-center justify-center text-center gap-3">
+                      
+                      <!-- Category-aware live widget -->
+                      <div class="text-xs font-mono text-slate-400" dir="ltr" v-text="activeTerm.preview.badge"></div>
+                      
+                      <!-- Interactive Demo Element Render -->
+                      <div class="w-full max-w-sm">
+                        <div 
+                          :class="demoExecuted ? 'border-[#00DC82] bg-[#111c18] scale-[1.02]' : 'border-slate-700 bg-[#0F172A]'"
+                          class="p-3.5 rounded-xl border transition-all duration-300">
+                          <p class="text-xs text-slate-400 mb-1" v-text="activeTerm.preview.label"></p>
+                          <p dir="ltr" class="code-font text-sm font-bold text-[#00DC82] break-all" v-text="demoOutputText"></p>
+                        </div>
+                      </div>
+
+                      <!-- Interactive Input / Slider if applicable -->
+                      <div class="flex flex-wrap items-center justify-center gap-2 mt-1">
+                        <button
+                          @click="triggerInteractiveDemo"
+                          class="px-4 py-2 rounded-xl text-xs font-bold bg-[#00DC82] hover:bg-[#00b86b] text-[#020420] shadow-glow-sm transition-all flex items-center gap-1.5">
+                          <span>▶ تجربة وتنفيذ تفاعلي</span>
+                          <span class="font-mono text-[11px]" v-text="'(' + demoCounter + ')'"></span>
+                        </button>
+                        <button
+                          @click="mutateDemoValue"
+                          class="px-3 py-2 rounded-xl text-xs font-semibold bg-[#0F172A] hover:bg-slate-800 text-slate-200 border border-[#1e332c] transition-all">
+                          تغيير القيمة العشوائية ⚡
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="text-xs text-slate-400 bg-[#020420]/50 px-3.5 py-2 rounded-xl border border-[#1e332c]/60 flex items-center justify-between">
+                      <span>النتيجة الفورية في المتصفح:</span>
+                      <span dir="ltr" class="font-mono text-[#00DC82]" v-text="demoExecuted ? 'Status: Executed Successfully ✓' : 'Status: Ready to Interact'"></span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- TAB 2: Side-by-Side Comparison (Vanilla JS / DOM vs Vue 3 Composition API / Nuxt UI) -->
+              <div v-else class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                
+                <!-- Traditional Vanilla JS / HTML / CSS -->
+                <div class="rounded-2xl bg-[#020420] border border-[#1e332c] overflow-hidden">
+                  <div class="px-4 py-2.5 bg-amber-500/10 border-b border-[#1e332c] flex items-center justify-between">
+                    <span class="text-xs font-bold text-amber-300">الطريقة التقليدية (Vanilla JS / Standard DOM)</span>
+                    <span dir="ltr" class="text-[11px] font-mono text-amber-400/80">Imperative</span>
+                  </div>
+                  <pre dir="ltr" class="p-4 text-xs sm:text-sm code-font overflow-x-auto leading-relaxed text-left"><code v-html="highlightCode(activeTerm.compareJs)"></code></pre>
+                </div>
+
+                <!-- Modern Vue 3 Composition API / Nuxt UI -->
+                <div class="rounded-2xl bg-[#020420] border border-[#00DC82]/50 overflow-hidden shadow-glow-sm">
+                  <div class="px-4 py-2.5 bg-[#111c18] border-b border-[#1e332c] flex items-center justify-between">
+                    <span class="text-xs font-bold text-[#00DC82]">الطريقة التفاعلية المختصرة (Vue 3 / Nuxt UI v3)</span>
+                    <span dir="ltr" class="text-[11px] font-mono text-emerald-300">Declarative & Reactive</span>
+                  </div>
+                  <pre dir="ltr" class="p-4 text-xs sm:text-sm code-font overflow-x-auto leading-relaxed text-left"><code v-html="highlightCode(activeTerm.compareVue)"></code></pre>
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </section>
+
+      </div>
+    </main>
+
+  </template>
+
+  <!-- ================= NUXT UI ADVISOR & PLAYGROUND MODE ================= -->
+  <template v-else>
+    <main class="relative z-10 flex-1 max-w-[1440px] w-full mx-auto px-4 sm:px-6 pb-14 space-y-8">
+      
+      <!-- Interactive Prop Playground Card -->
+      <div class="bg-[#0F172A]/95 border border-[#00DC82]/50 rounded-3xl p-6 sm:p-8 shadow-glow backdrop-blur-xl space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#1e332c] pb-5">
+          <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#111c18] text-[#00DC82] border border-[#00DC82]/30 text-xs font-mono mb-2">
+              <span>Nuxt UI v3 Interactive Prop Playground</span>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-bold text-white">معمل ومستشار مكونات Nuxt UI التفاعلي</h2>
+            <p class="text-sm text-slate-400 mt-1">غيّر خصائص المكون (Props) وشاهد المعاينة الحية وتوليد كود Vue/Nuxt الفوري جاهزاً للنسخ في مشروعك.</p>
+          </div>
+          <a 
+            href="https://ui.nuxt.com/components" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            class="px-4 py-2.5 rounded-xl bg-[#111c18] hover:bg-[#00DC82] text-[#00DC82] hover:text-[#020420] border border-[#00DC82]/40 text-xs sm:text-sm font-bold transition-all self-start md:self-center">
+            تصفح توثيق Nuxt UI v3 الرسمي ↗
+          </a>
+        </div>
+
+        <!-- Playground Controls & Live Preview Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+          
+          <!-- Prop Controls (5 cols) -->
+          <div class="lg:col-span-5 bg-[#020420]/90 border border-[#1e332c] rounded-2xl p-5 space-y-4">
+            <h3 class="text-sm font-bold text-[#00DC82] border-b border-[#1e332c] pb-2.5">تخصيص الخصائص (Props Configuration)</h3>
+
+            <!-- Color Prop -->
+            <div class="space-y-1.5">
+              <label class="text-xs text-slate-300 flex justify-between">
+                <span>اللون الدلالي (color):</span>
+                <span dir="ltr" class="font-mono text-[#00DC82]" v-text="pg.color"></span>
+              </label>
+              <div class="grid grid-cols-4 gap-2" dir="ltr">
+                <button
+                  v-for="c in ['primary', 'neutral', 'warning', 'error']"
+                  :key="c"
+                  @click="pg.color = c"
+                  :class="pg.color === c ? 'border-[#00DC82] bg-[#111c18] text-[#00DC82] font-bold' : 'border-[#1e332c] bg-[#0F172A] text-slate-300'"
+                  class="py-1.5 px-2 rounded-xl text-xs font-mono border transition-all capitalize"
+                  v-text="c">
+                </button>
+              </div>
+            </div>
+
+            <!-- Variant Prop -->
+            <div class="space-y-1.5">
+              <label class="text-xs text-slate-300 flex justify-between">
+                <span>النمط البصري (variant):</span>
+                <span dir="ltr" class="font-mono text-[#00DC82]" v-text="pg.variant"></span>
+              </label>
+              <div class="grid grid-cols-4 gap-2" dir="ltr">
+                <button
+                  v-for="v in ['solid', 'outline', 'soft', 'ghost']"
+                  :key="v"
+                  @click="pg.variant = v"
+                  :class="pg.variant === v ? 'border-[#00DC82] bg-[#111c18] text-[#00DC82] font-bold' : 'border-[#1e332c] bg-[#0F172A] text-slate-300'"
+                  class="py-1.5 px-2 rounded-xl text-xs font-mono border transition-all capitalize"
+                  v-text="v">
+                </button>
+              </div>
+            </div>
+
+            <!-- Size Prop -->
+            <div class="space-y-1.5">
+              <label class="text-xs text-slate-300 flex justify-between">
+                <span>الحجم (size):</span>
+                <span dir="ltr" class="font-mono text-[#00DC82]" v-text="pg.size"></span>
+              </label>
+              <div class="grid grid-cols-4 gap-2" dir="ltr">
+                <button
+                  v-for="s in ['sm', 'md', 'lg', 'xl']"
+                  :key="s"
+                  @click="pg.size = s"
+                  :class="pg.size === s ? 'border-[#00DC82] bg-[#111c18] text-[#00DC82] font-bold' : 'border-[#1e332c] bg-[#0F172A] text-slate-300'"
+                  class="py-1.5 px-2 rounded-xl text-xs font-mono border transition-all uppercase"
+                  v-text="s">
+                </button>
+              </div>
+            </div>
+
+            <!-- Label Input -->
+            <div class="space-y-1.5">
+              <label class="text-xs text-slate-300">النص داخل المكون (label):</label>
+              <input 
+                v-model="pg.label" 
+                type="text" 
+                class="w-full px-3.5 py-2 rounded-xl bg-[#0F172A] border border-[#1e332c] focus:border-[#00DC82] text-sm text-white focus:outline-none"
+              />
+            </div>
+
+            <!-- Toggles: loading, disabled, block -->
+            <div class="grid grid-cols-3 gap-2 pt-2">
+              <label class="flex items-center gap-2 p-2.5 rounded-xl bg-[#0F172A] border border-[#1e332c] cursor-pointer text-xs">
+                <input type="checkbox" v-model="pg.loading" class="accent-[#00DC82] w-4 h-4" />
+                <span>loading</span>
+              </label>
+              <label class="flex items-center gap-2 p-2.5 rounded-xl bg-[#0F172A] border border-[#1e332c] cursor-pointer text-xs">
+                <input type="checkbox" v-model="pg.disabled" class="accent-[#00DC82] w-4 h-4" />
+                <span>disabled</span>
+              </label>
+              <label class="flex items-center gap-2 p-2.5 rounded-xl bg-[#0F172A] border border-[#1e332c] cursor-pointer text-xs">
+                <input type="checkbox" v-model="pg.roundedFull" class="accent-[#00DC82] w-4 h-4" />
+                <span>rounded-full</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Live Rendered Button & Generated Code (7 cols) -->
+          <div class="lg:col-span-7 flex flex-col justify-between gap-4">
+            
+            <!-- Live Preview Stage -->
+            <div class="flex-1 rounded-2xl bg-gradient-to-br from-[#020420] via-[#0b1324] to-[#111c18] border border-[#1e332c] p-8 flex flex-col items-center justify-center relative overflow-hidden min-h-[200px]">
+              <div class="absolute top-3 right-4 text-xs text-slate-400 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-[#00DC82]"></span>
+                <span>معاينة حية لمكون &lt;UButton /&gt;</span>
+              </div>
+
+              <!-- Simulated Nuxt UI UButton -->
+              <button
+                type="button"
+                :disabled="pg.disabled || pg.loading"
+                :class="computedPlaygroundButtonClasses"
+                class="transition-all duration-200 font-semibold inline-flex items-center justify-center gap-2.5">
+                <!-- Spinner when loading -->
+                <svg v-if="pg.loading" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                </svg>
+                <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+                <span v-text="pg.label || 'UButton'"></span>
+              </button>
+            </div>
+
+            <!-- Auto-Generated Nuxt UI Code Box -->
+            <div class="rounded-2xl bg-[#020420] border border-[#1e332c] overflow-hidden">
+              <div class="px-4 py-2.5 bg-[#0b1324] border-b border-[#1e332c] flex items-center justify-between">
+                <span dir="ltr" class="text-xs font-mono text-[#00DC82]">Generated Nuxt UI v3 Template</span>
+                <button
+                  @click="copyCode(generatedUButtonCode)"
+                  class="px-3 py-1 rounded-lg text-xs font-mono bg-[#111c18] hover:bg-[#00DC82] text-[#00DC82] hover:text-[#020420] border border-[#00DC82]/40 transition-all">
+                  <span v-text="copiedToast ? '✓ تم نسخ الكود!' : 'Copy <UButton>'"></span>
+                </button>
+              </div>
+              <pre dir="ltr" class="p-4 text-xs sm:text-sm code-font text-emerald-300 overflow-x-auto text-left"><code v-text="generatedUButtonCode"></code></pre>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Full Nuxt UI Components Grid Directory -->
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-xl font-bold text-white">دليل مكونات Nuxt UI v3 الكامل (<span v-text="nuxtUiComponents.length"></span> مكوناً)</h3>
+            <p class="text-xs text-slate-400">اضغط على "معاينة وشرح" لفتح المكون في القاموس التفصيلي أو افتح التوثيق الرسمي مباشرة.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div
+            v-for="comp in nuxtUiComponents"
+            :key="comp.id"
+            class="bg-[#0F172A]/90 border border-[#1e332c] hover:border-[#00DC82] rounded-2xl p-5 flex flex-col justify-between gap-4 transition-all shadow-glow-sm group">
+            
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <span dir="ltr" class="code-font text-base font-bold text-[#00DC82] bg-[#020420] px-3 py-1 rounded-xl border border-[#1e332c]" v-text="comp.term"></span>
+                <span class="text-xs font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">Nuxt UI v3</span>
+              </div>
+              <h4 class="text-base font-bold text-white pt-1" v-text="comp.arabicTitle"></h4>
+              <p class="text-xs text-slate-300 leading-relaxed line-clamp-2" v-text="comp.description"></p>
+            </div>
+
+            <div class="pt-3 border-t border-[#1e332c]/80 flex items-center justify-between gap-2">
+              <button
+                @click="openInDictionary(comp)"
+                class="flex-1 py-2 px-3 rounded-xl bg-[#111c18] hover:bg-[#00DC82] text-[#00DC82] hover:text-[#020420] text-xs font-bold border border-[#00DC82]/40 transition-all">
+                معاينة وشرح تفصيلي
+              </button>
+              <a
+                :href="comp.docs"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="py-2 px-3 rounded-xl bg-[#020420] hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-mono border border-[#1e332c] transition-all"
+                dir="ltr">
+                Docs ↗
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </template>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="border-t border-[#1e332c] bg-[#020420]/90 py-5 px-4 sm:px-6 text-xs text-slate-400">
+    <div class="max-w-[1440px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-[#00DC82]"></span>
+        <span><strong class="text-white">VueLexicon Pro</strong> — قاموس ومترجم مطوري الويب التفاعلي ومستشار Nuxt UI v3</span>
+      </div>
+      <div class="flex items-center gap-4 font-mono" dir="ltr">
+        <span>Vue.js 3 Composition API</span>
+        <span>•</span>
+        <span>Tailwind CSS</span>
+        <span>•</span>
+        <span class="text-[#00DC82]" v-text="allHydratedTerms.length + ' Indexed Terms'"></span>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+const { createApp, ref, reactive, computed, onMounted, onUnmounted } = Vue;
+
+/**
+ * COMPACT TUPLE DATABASE (152 Comprehensive Web Dev, Vue 3, & Nuxt UI Terms covering A-Z)
+ * Tuple Format:
+ * [0: Category, 1: Term, 2: ArabicTitle, 3: Keywords, 4: Description, 5: CodeExample, 6: SyntaxInfo, 7: ReturnInfo]
+ */
+const RAW_TUPLES = [
+  // ==================== JAVASCRIPT (ES6+) ====================
+  ['JavaScript', 'function', 'تعريف دالة برمجية', 'دالة وظيفة اعلان كود استدعاء', 'الكلمة المفتاحية الأساسية لتعريف دالة قابلة لإعادة الاستخدام تستقبل مدخلات (Parameters) وتعيد نتيجة.', 'function calcTotal(price, tax = 0.15) {\n  return price + (price * tax);\n}\nconsole.log(calcTotal(100)); // 115', 'function name(params) { ... }', 'Returns value or undefined'],
+  ['JavaScript', 'Arrow Function (=>)', 'الدالة السهمية المختصرة', 'سهمية دالة مختصرة سهم this', 'صيغة حديثة ومختصرة في ES6 لكتابة الدوال، لا تملك سياق this خاص بها مما يجعلها مثالية داخل الـ Callbacks.', 'const double = (n) => n * 2;\nconst users = ["Ali", "Sara"].map(name => ({ name }));', '(params) => expression', 'Implicit or Explicit Return'],
+  ['JavaScript', 'const', 'تعريف ثابت برمجي', 'ثابت متغير لا يتغير نطاق بلوك', 'تصريح عن متغير ثابت النطاق (Block-scoped) لا يمكن إعادة إسناد مرجعه بعد تعريفه.', 'const API_URL = "https://api.example.com";\nconst config = { theme: "dark" };\nconfig.theme = "nuxt"; // مسموح تعديل الخصائص', 'const IDENTIFIER = value;', 'Block-scoped Constant'],
+  ['JavaScript', 'let', 'تعريف متغير محلي قابل للتعديل', 'متغير محلي بلوك تعديل قيمة', 'تصريح عن متغير محصور داخل النطاق الحالي (Block Scope) ويمكن تغيير قيمته لاحقاً.', 'let counter = 0;\ncounter += 1;\nconsole.log(counter); // 1', 'let variableName = initialVal;', 'Mutable Block Variable'],
+  ['JavaScript', 'var', 'تعريف متغير تقليدي (على مستوى الدالة)', 'متغير قديم دالة رفع hoisting', 'الطريقة القديمة لتعريف المتغيرات في جافاسكربت، تتبع نطاق الدالة (Function Scope) وتخضع للرفع (Hoisting).', 'var legacyStatus = "active";\nif (true) {\n  var legacyStatus = "overwritten";\n}', 'var name = value;', 'Function-scoped Variable'],
+  ['JavaScript', 'if / else', 'الجملة الشرطية وتفرع المسار', 'شرط اذا والا قرار تحقق', 'تنفيذ كتلة برمجية محددة في حال تحقق الشرط المنطقي (true)، أو الانتقال لكتلة بديلة عند عدم تحققه.', 'if (score >= 90) {\n  grade = "A+";\n} else if (score >= 75) {\n  grade = "B";\n} else {\n  grade = "C";\n}', 'if (condition) { ... } else { ... }', 'Control Flow Statement'],
+  ['JavaScript', 'switch', 'التفرع المتعدد للقيم', 'تبديل حالات مقارنة متعددة', 'بنية شرطية تقارن قيمة تعبير واحد بعدة حالات (cases) محتملة بطريقة منظمة وواضحة.', 'switch (role) {\n  case "admin": return "صلاحيات كاملة";\n  case "editor": return "تعديل المحتوى";\n  default: return "زائر";\n}', 'switch(expr) { case x: ... }', 'Multi-way Branching'],
+  ['JavaScript', 'for / for...of', 'حلقات التكرار المتتابعة', 'تكرار حلقة دوران عناصر مصفوفة', 'حلقة لتكرار تنفيذ الكود عدد محدد من المرات أو المرور المباشر على عناصر المصفوفات والكائنات القابلة للتكرار.', 'const langs = ["HTML", "CSS", "Vue"];\nfor (const item of langs) {\n  console.log(item);\n}', 'for (const item of iterable) { ... }', 'Loop / Iteration Control'],
+  ['JavaScript', 'forEach()', 'المرور على عناصر المصفوفة', 'تكرار مصفوفة تنفيذ لكل عنصر', 'دالة مصفوفة تنفذ دالة معينة مرة واحدة لكل عنصر بالترتيب دون إرجاع مصفوفة جديدة.', 'const prices = [10, 20, 30];\nprices.forEach((p, idx) => {\n  console.log(`Item ${idx}: $${p}`);\n});', 'array.forEach((item, index) => ...)', 'Returns undefined'],
+  ['JavaScript', 'map()', 'تحويل عناصر المصفوفة لمصفوفة جديدة', 'تحويل خريطة مصفوفة جديدة تعديل', 'تُنشئ مصفوفة جديدة تماماً تحتوي على نتائج تطبيق دالة معينة على كل عنصر في المصفوفة الأصلية.', 'const nums = [1, 2, 3];\nconst squares = nums.map(n => n * n);\n// [1, 4, 9]', 'array.map((item, idx) => newValue)', 'Returns New Array'],
+  ['JavaScript', 'filter()', 'تصفية وفلترة عناصر المصفوفة', 'فلتر تصفية بحث فرز شروط', 'تُرجع مصفوفة جديدة تحتوي فقط على العناصر التي اجتازت الشرط المنطقي (أعادت true).', 'const products = [{p: 50}, {p: 150}];\nconst expensive = products.filter(i => i.p > 100);', 'array.filter(item => boolean)', 'Returns Filtered Array'],
+  ['JavaScript', 'reduce()', 'اختزال المصفوفة لقيمة واحدة مجمعة', 'تجميع اختزال مجموع حساب مصفوفة', 'تختزل جميع عناصر المصفوفة إلى قيمة نهائية واحدة (مثل مجموع أرقام أو كائن مجمع) عبر مركم (Accumulator).', 'const cart = [25, 50, 75];\nconst total = cart.reduce((acc, cur) => acc + cur, 0);\n// 150', 'array.reduce((acc, cur) => ..., init)', 'Returns Single Accumulated Value'],
+  ['JavaScript', 'find()', 'إيجاد أول عنصر يطابق الشرط', 'بحث ايجاد عنصر اول مطابق', 'تبحث داخل المصفوفة وتُعيد أول عنصر يحقق دالة الاختبار، أو undefined إذا لم تجد شيئاً.', 'const users = [{id: 1, n: "Ali"}, {id: 2, n: "Maya"}];\nconst target = users.find(u => u.id === 2);', 'array.find(item => condition)', 'Element or undefined'],
+  ['JavaScript', 'includes()', 'التحقق من وجود قيمة في مصفوفة أو نص', 'يحتوي يتضمن بحث وجود نص مصفوفة', 'تتحقق مما إذا كانت المصفوفة أو السلسلة النصية تحتوي على قيمة معينة وتعيد true أو false.', 'const roles = ["admin", "moderator"];\nconst hasAccess = roles.includes("admin"); // true', 'arrayOrStr.includes(searchVal)', 'Returns Boolean (true/false)'],
+  ['JavaScript', 'push() / splice()', 'إضافة أو حذف عناصر من المصفوفة', 'اضافة حذف تعديل مصفوفة نهاية', 'push تضيف عناصر لنهاية المصفوفة، بينما splice تحذف أو تستبدل أو تضيف عناصر في أي موقع محدد.', 'const list = ["A", "B"];\nlist.push("C"); // ["A", "B", "C"]\nlist.splice(1, 1, "X"); // ["A", "X", "C"]', 'arr.push(el) / arr.splice(start, del, item)', 'Mutates Original Array'],
+  ['JavaScript', 'async / await', 'البرمجة غير المتزامنة الحديثة', 'غير متزامن انتظار وعود شبكة طلبات', 'صيغة تجعل التعامل مع العمليات غير المتزامنة (Promises) يبدو وكأنه كود متزامن سهل القراءة والتتبع.', 'async function loadProfile() {\n  const res = await fetch("/api/user");\n  return await res.json();\n}', 'async function() { await promise }', 'Returns a Promise'],
+  ['JavaScript', 'fetch()', 'جلب البيانات عبر الشبكة (HTTP Requests)', 'طلب شبكة اتصال ايبياي سيرفر جلب', 'واجهة قياسية حديثة لإرسال طلبات الشبكة (GET, POST, etc.) واستقبال البيانات من الخوادم بصيغة Promise.', 'const res = await fetch("https://api.github.com/users/vuejs");\nconst data = await res.json();', 'fetch(url, options)', 'Promise<Response>'],
+  ['JavaScript', 'Promise', 'كائن الوعد للعمليات غير المتزامنة', 'وعد عملية مستقبلية نجاح فشل', 'يمثل القيمة النهائية (نجاح resolve أو فشل reject) لعملية غير متزامنة ستكتمل في المستقبل.', 'const timer = new Promise((resolve) => {\n  setTimeout(() => resolve("تم بنجاح!"), 1000);\n});', 'new Promise((resolve, reject) => ...)', 'Promise Instance'],
+  ['JavaScript', 'try / catch', 'اصطياد ومعالجة الأخطاء البرمجية', 'خطأ معالجة استثناء حماية تجربة', 'تحمي التطبيق من التوقف المفاجئ عبر تجربة تنفيذ الكود في try والتقاط أي خطأ يظهر داخل catch.', 'try {\n  const data = JSON.parse(rawInput);\n} catch (error) {\n  console.error("JSON غير صالح:", error.message);\n}', 'try { ... } catch (err) { ... } finally { ... }', 'Exception Handling Block'],
+  ['JavaScript', 'JSON.stringify / parse', 'تحويل الكائنات من وإلى نصوص JSON', 'تحويل نص كائن بيانات تخزين', 'stringify يحول كائن JS إلى نص JSON لإرساله أو تخزينه، بينما parse يعيد النص إلى كائن JS قابل للاستخدام.', 'const str = JSON.stringify({ id: 1, ok: true });\nconst obj = JSON.parse(str);', 'JSON.stringify(obj) / JSON.parse(str)', 'String / Parsed Object'],
+  ['JavaScript', 'localStorage', 'التخزين المحلي الدائم في المتصفح', 'تخزين ذاكرة متصفح حفظ دائم مفضلة', 'واجهة تسمح بحفظ البيانات محلياً في متصفح المستخدم على شكل (مفتاح/قيمة) ولا تُمسح عند إغلاق الصفحة.', 'localStorage.setItem("theme", "dark");\nconst current = localStorage.getItem("theme");', 'localStorage.setItem(k, v) / getItem(k)', 'Web Storage API'],
+  ['JavaScript', 'querySelector()', 'تحديد عنصر DOM بمحددات CSS', 'تحديد اختيار عنصر صفحة كلاس ايدي', 'تُرجع أول عنصر في الصفحة يطابق محدد CSS الممرر لها (مثل .class أو #id أو اسم الوسم).', 'const btn = document.querySelector(".submit-btn");\nbtn.textContent = "تم الإرسال";', 'document.querySelector(selector)', 'HTMLElement or null'],
+  ['JavaScript', 'getElementById()', 'الوصول لعنصر عبر المعرف الفريد ID', 'معرف ايدي عنصر وصول سريع', 'طريقة سريعة ومباشرة لجلب عنصر HTML من الوثيقة بالاعتماد على قيمة خاصية id الخاصة به.', 'const header = document.getElementById("main-header");\nheader.classList.add("sticky");', 'document.getElementById(idString)', 'HTMLElement or null'],
+  ['JavaScript', 'addEventListener()', 'الاستماع للأحداث التفاعلية', 'حدث نقر استماع تفاعل مستخدم', 'ربط دالة استجابة (Handler) بحدث معين يقع على العنصر مثل النقر (click) أو إدخال نص (input) أو الضغط على زر.', 'window.addEventListener("keydown", (e) => {\n  if (e.key === "Escape") closeModal();\n});', 'target.addEventListener(event, callback)', 'Returns undefined'],
+  ['JavaScript', 'setTimeout()', 'تأخير تنفيذ الكود لوقت محدد', 'مؤقت تاخير وقت ثواني انتظار', 'تنفذ دالة برمجية مرة واحدة بعد انقضاء عدد محدد من المللي ثانية (1000ms = ثانية واحدة).', 'const timerId = setTimeout(() => {\n  showToast("مرحباً بك في VueLexicon!");\n}, 1500);', 'setTimeout(callback, delayMs)', 'Returns Timer ID (Number)'],
+  ['JavaScript', 'Destructuring', 'تفكيك المصفوفات والكائنات', 'تفكيك استخراج خصائص متغيرات مختصر', 'صيغة ذكية لاستخراج القيم من المصفوفات أو الخصائص من الكائنات وإسنادها مباشرة إلى متغيرات مستقلة.', 'const user = { name: "Omar", role: "Dev" };\nconst { name, role } = user;\nconst [first, second] = [10, 20];', 'const { a, b } = obj; / const [x, y] = arr;', 'Extracted Bindings'],
+  ['JavaScript', 'Spread (...)', 'معامل النشر والتوسيع الثلاثي', 'نشر نسخ دمج مصفوفة كائن نقاط', 'ينشر عناصر مصفوفة أو خصائص كائن داخل مصفوفة أو كائن جديد، وهو مثالي للنسخ السطحي والدمج غير المدمر.', 'const base = [1, 2];\nconst merged = [...base, 3, 4];\nconst updatedUser = { ...user, active: true };', '[...iterable] / { ...obj }', 'Cloned / Merged Structure'],
+  ['JavaScript', 'Template Literals', 'القوالب النصية المدمجة (` `)', 'نص قالب متغيرات اسطر متعددة باكتيك', 'نصوص محاطة بعلامة (`) تسمح بدمج المتغيرات والتعبيرات البرمجية مباشرة داخل النص عبر ${expr} ودعم تعدد الأسطر.', 'const lang = "Vue 3";\nconst msg = `مرحباً بك في عالم ${lang} التفاعلي!`;', '`Text ${expression}`', 'Formatted String'],
+  ['JavaScript', 'Optional Chaining (?.)', 'التسلسل الاختياري الآمن للخصائص', 'اختياري تسلسل امان فحص خطأ null', 'يسمح بقراءة قيمة خاصية متداخلة بأمان دون رمي خطأ إذا كان أحد المراجع في السلسلة null أو undefined.', 'const city = user?.address?.city ?? "غير محدد";', 'obj?.prop / obj?.[expr] / func?.()', 'Property Value or undefined'],
+  ['JavaScript', 'class', 'تعريف الصنف البرمجي (OOP)', 'كلاس صنف كائنات وراثة قالب', 'قالب لإنشاء الكائنات يجمع البيانات (Properties) والوظائف (Methods) مع دعم الوراثة عبر extends.', 'class Developer {\n  constructor(name) { this.name = name; }\n  code() { return `${this.name} builds apps`; }\n}', 'class Name { constructor() { ... } }', 'Class Constructor'],
+  ['JavaScript', 'export / import', 'تصدير واستيراد الوحدات البرمجية (ES Modules)', 'تصدير استيراد ملفات وحدات تقسيم', 'نظام قياسي لتقسيم الكود إلى ملفات مستقلة قابلة لإعادة الاستخدام عبر تصدير الدوال واستيرادها حيثما يلزم.', '// math.js\nexport const sum = (a, b) => a + b;\n// main.js\nimport { sum } from "./math.js";', 'export { x } / import { x } from "mod"', 'ES Module Binding'],
+  ['JavaScript', 'Object.keys/entries', 'استخراج مفاتيح ومدخلات الكائنات', 'كائن مفاتيح قيم تحويل مصفوفة', 'Object.keys تعيد مصفوفة بأسماء مفاتيح الكائن، و Object.entries تعيد مصفوفة أزواج [key, value] للتكرار عليها.', 'const stats = { vue: 95, nuxt: 98 };\nObject.entries(stats).forEach(([k, v]) => {\n  console.log(k, v);\n});', 'Object.keys(obj) / Object.entries(obj)', 'Array of Keys or [Key, Val]'],
+  ['JavaScript', 'return', 'إرجاع القيمة وإنهاء تنفيذ الدالة', 'ارجاع عودة نتيجة خروج دالة', 'تُنهي تنفيذ الدالة فوراً وتُحدد القيمة التي ستُعاد إلى المكان الذي استدعى هذه الدالة.', 'function isAdult(age) {\n  if (age < 18) return false;\n  return true;\n}', 'return expression;', 'Exits Function with Value'],
+  ['JavaScript', 'typeof', 'فحص ومعرفة نوع البيانات', 'نوع فحص بيانات نص رقم كائن', 'معامل يُعيد سلسلة نصية توضح النوع الأساسي للقيمة (مثل "string", "number", "boolean", "object", "function").', 'console.log(typeof "VueLexicon"); // "string"\nconsole.log(typeof 42); // "number"', 'typeof operand', 'Type String ("number", etc.)'],
+  ['JavaScript', 'console.log', 'طباعة المخرجات لتتبع الأخطاء', 'طباعة كونسول فحص تتبع رسائل', 'تطبع الرسائل أو القيم أو الكائنات في وحدة تحكم المتصفح (DevTools Console) لمساعدة المطور في الفحص.', 'console.log("State updated:", { count: 5 });', 'console.log(data1, data2, ...)', 'Outputs to Console'],
+  ['JavaScript', 'XMLHttpRequest', 'كائن طلبات الشبكة الكلاسيكي (XHR)', 'اجاكس طلب شبكة قديم اتصال', 'الواجهة الكلاسيكية في المتصفح لإرسال طلبات HTTP غير المتزامنة (AJAX) قبل ظهور fetch و Axios.', 'const xhr = new XMLHttpRequest();\nxhr.open("GET", "/api/items");\nxhr.onload = () => console.log(xhr.responseText);\nxhr.send();', 'new XMLHttpRequest()', 'XHR Object Instance'],
+  ['JavaScript', 'yield', 'إيقاف واستئناف الدوال المولدة (Generators)', 'توليد ايقاف مؤقت دالة مولدة تسلسل', 'تُستخدم داخل دوال Generator (function*) لإيقاف التنفيذ مؤقتاً وإرجاع قيمة متسلسلة عند كل استدعاء لـ next().', 'function* idGenerator() {\n  let id = 1;\n  while (true) yield id++;\n}\nconst gen = idGenerator();\nconsole.log(gen.next().value); // 1', 'yield expression;', 'IteratorResult { value, done }'],
+  ['JavaScript', 'queueMicrotask()', 'جدولة مهمة دقيقة في طابور المهام الفوري', 'طابور مهام دقيقة سرعة تنفيذ غير متزامن', 'تضع دالة في طابور المهام الدقيقة (Microtask Queue) لتنفذ فوراً بعد انتهاء الكود الحالي وقبل رسم الإطار التالي.', 'queueMicrotask(() => {\n  console.log("تنفذ قبل setTimeout فوراً!");\n});', 'queueMicrotask(callback)', 'Returns undefined'],
+  ['JavaScript', 'WeakMap', 'خريطة كائنات ذات مراجع ضعيفة للذاكرة', 'خريطة ذاكرة كائنات تنظيف تلقائي', 'مجموعة أزواج (مفتاح/قيمة) يجب أن تكون مفاتيحها كائنات، وتسمح لجامع القمامة (GC) بتحرير الذاكرة تلقائياً.', 'const cache = new WeakMap();\nlet el = { id: "hero" };\ncache.set(el, "metadata");', 'new WeakMap()', 'WeakMap Instance'],
+
+  // ==================== VUE.JS 3 (COMPOSITION API) ====================
+  ['Vue.js 3', 'ref()', 'متغير تفاعلي مرجعي (Reactive Reference)', 'تفاعلي متغير حالة قيمة refتحديث', 'تُغلف أي قيمة (أولية أو كائن) داخل كائن تفاعلي يُقرأ ويُعدل في الجافاسكربت عبر خاصية .value ومباشرة في القالب.', 'import { ref } from "vue";\nconst count = ref(0);\nfunction increment() {\n  count.value++;\n}', 'const state = ref(initialValue)', 'RefImpl { value: T }'],
+  ['Vue.js 3', 'reactive()', 'كائن تفاعلي عميق (Deep Reactive Proxy)', 'تفاعلي كائن حالة بروكسي عميق', 'تحول كائناً عادياً أو مصفوفة إلى نسخة تفاعلية عميقة (Proxy) بحيث يرصد Vue أي تعديل على خصائصه مباشرة بدون .value.', 'import { reactive } from "vue";\nconst form = reactive({\n  username: "ahmad",\n  remember: true\n});\nform.username = "sara";', 'const state = reactive({ ... })', 'Reactive Proxy Object'],
+  ['Vue.js 3', 'computed()', 'خاصية محسوبة تفاعلية مخبأة (Cached)', 'محسوب تلقائي مشتق كاش تفاعلي', 'تُنشئ قيمة تفاعلية مشتقة من متغيرات أخرى، وتُعيد حساب نفسها فقط عندما تتغير إحدى اعتمادياتها (Cached).', 'const price = ref(100);\nconst qty = ref(3);\nconst total = computed(() => price.value * qty.value);', 'const val = computed(() => expr)', 'ComputedRef<T>'],
+  ['Vue.js 3', 'watch() / watchEffect()', 'مراقبة التغيرات التفاعلية وتنفيذ تأثيرات جانبية', 'مراقب رصد تغير حدث تلقائي', 'watch تراقب مصدراً محدداً وتوفر القيمة الجديدة والقديمة، بينما watchEffect تكتشف الاعتماديات تلقائياً فور تشغيلها.', 'watch(searchQuery, (newVal, oldVal) => {\n  fetchResults(newVal);\n});\nwatchEffect(() => console.log(count.value));', 'watch(source, cb, options)', 'StopHandle Function'],
+  ['Vue.js 3', 'onMounted()', 'خطاف دورة الحياة بعد تركيب المكون في الصفحة', 'دورة حياة تركيب جاهز بداية DOM', 'يُنفذ الكود الممرر له فور انتهاء Vue من إنشاء المكون وإدراجه فعلياً في شجرة DOM (مثالي لجلب البيانات).', 'import { onMounted } from "vue";\nonMounted(async () => {\n  await loadInitialData();\n});', 'onMounted(() => { ... })', 'Lifecycle Hook Registration'],
+  ['Vue.js 3', 'onUnmounted()', 'خطاف تنظيف المكون عند إزالته من الصفحة', 'تنظيف ازالة تدمير ايقاف مؤقت مستمع', 'يُستدعى بعد إزالة المكون من DOM، ويُستخدم لإيقاف المؤقتات وإزالة مستمعي الأحداث لمنع تسرب الذاكرة.', 'onUnmounted(() => {\n  window.removeEventListener("resize", onResize);\n  clearInterval(timer);\n});', 'onUnmounted(() => { ... })', 'Lifecycle Cleanup Hook'],
+  ['Vue.js 3', 'defineProps()', 'تعريف الخصائص المستقبلة في المكون الابن', 'خصائص مدخلات اب ابن تمرير بيانات', 'ماكرو مترجم (Compiler Macro) داخل <script setup> لتصريح الخصائص التي يستقبلها المكون من المكون الأب.', 'const props = defineProps({\n  title: { type: String, required: true },\n  count: { type: Number, default: 0 }\n});', 'defineProps({ propName: Options })', 'Readonly Props Object'],
+  ['Vue.js 3', 'defineEmits()', 'تعريف وإطلاق الأحداث نحو المكون الأب', 'ارسال حدث اب ابن تواصل استجابة', 'تُعرف الأحداث المخصصة التي يمكن للمكون الابن إطلاقها لإبلاغ المكون الأب بحدوث تفاعل أو تغيير.', 'const emit = defineEmits(["save", "close"]);\nfunction handleSave() {\n  emit("save", { id: 10 });\n}', 'const emit = defineEmits([...])', 'Emit Trigger Function'],
+  ['Vue.js 3', 'defineModel()', 'الربط ثنائي الاتجاه المباشر للمكونات (Vue 3.4+)', 'ربط مزدوج موديل مكون اب ابن حديث', 'ماكرو حديث يختصر تعريف prop والحدث update:modelValue في متغير ref تفاعلي واحد متزامن بين الأب والابن.', '<script setup>\nconst modelValue = defineModel({ default: "" });\n<\/script>\n<template>\n  <input v-model="modelValue" />\n</template>', 'const model = defineModel(options)', 'Two-way Model Ref<T>'],
+  ['Vue.js 3', 'provide() / inject()', 'حقن البيانات عبر شجرة المكونات العميقة', 'حقن تزويد شجرة مكونات مشاركة عامة', 'تسمح للمكون الأب بتزويد بيانات أو دوال لأي مكون حفيد في أي عمق مباشرة دون الحاجة لتمريرها عبر Props لكل طبقة.', '// الأب:\nprovide("theme", ref("dark"));\n// الحفيد:\nconst theme = inject("theme", "light");', 'provide(key, val) / inject(key, def)', 'Dependency Injection Pair'],
+  ['Vue.js 3', 'nextTick()', 'الانتظار حتى اكتمال تحديث DOM القادم', 'انتظار تحديث شاشة دورة رسم', 'تُرجع وعداً (Promise) يكتمل فور انتهاء Vue من تطبيق التحديثات التفاعلية المعلقة على عناصر الصفحة الفعلية.', 'count.value++;\nawait nextTick();\n// الآن العنصر في DOM يحمل القيمة الجديدة حتماً', 'await nextTick(callback?)', 'Promise<void>'],
+  ['Vue.js 3', 'v-model', 'الربط التفاعلي ثنائي الاتجاه لحقول الإدخال', 'ربط مزدوج حقل ادخال فورم تزامن', 'موجه (Directive) يربط قيمة حقل الإدخال أو المكون بمتغير تفاعلي بحيث يتحدث كلاهما تلقائياً عند أي تغيير.', '<input v-model.trim="username" placeholder="اسم المستخدم" />\n<p>مرحباً: {{ username }}</p>', 'v-model="reactiveRef"', 'Two-Way Data Binding'],
+  ['Vue.js 3', 'v-if / v-else', 'العرض الشرطي الحقيقي للعناصر في DOM', 'شرط اخفاء اظهار عنصر قالب', 'يُركب العنصر في DOM أو يزيله بالكامل بناءً على تحقق الشرط المنطقي الممرر له.', '<div v-if="isLoggedIn">لوحة التحكم</div>\n<div v-else>يرجى تسجيل الدخول</div>', 'v-if="condition" / v-else', 'Conditional DOM Rendering'],
+  ['Vue.js 3', 'v-show', 'تبديل الظهور بصرياً عبر خاصية CSS display', 'اظهار اخفاء سريع ستايل تبديل', 'يُبقي العنصر موجوداً دائماً في DOM ولكنه يبدل خاصية display: none عند عدم تحقق الشرط (أفضل للتبديل المتكرر).', '<div v-show="isOpen" class="dropdown-panel">\n  محتوى القائمة المنسدلة\n</div>', 'v-show="booleanExpr"', 'Toggles CSS display:none'],
+  ['Vue.js 3', 'v-for', 'تكرار رسم قوائم البيانات في القالب', 'تكرار قائمة حلقة عناصر رسم', 'موجه لرسم قائمة من العناصر أو المكونات بناءً على مصفوفة أو كائن أو نطاق رقمي مع إقرانه دائماً بـ :key.', '<li v-for="(item, idx) in items" :key="item.id">\n  {{ idx + 1 }} - {{ item.title }}\n</li>', 'v-for="(item, index) in list" :key="id"', 'List Template Iteration'],
+  ['Vue.js 3', 'v-bind (:)', 'الربط الديناميكي لخصائص HTML والـ Props', 'ربط خاصية ديناميكي كلاس ستايل', 'يربط خصائص العنصر (مثل src, href, class, disabled) بتعبيرات جافاسكربت تفاعلية، ويُختصر بعلامة النقطتين (:).', '<img :src="user.avatar" :alt="user.name" />\n<button :disabled="isSaving">حفظ</button>', ':attribute="dynamicValue"', 'Dynamic Attribute Binding'],
+  ['Vue.js 3', 'v-on (@)', 'الاستماع للأحداث وتنفيذ الدوال التفاعلية', 'حدث نقر ضغط استماع اختصار', 'يربط مستمع حدث بعنصر أو مكون مع دعم المعدّلات الذكية مثل .prevent و .stop و .enter، ويُختصر بالرمز (@).', '<form @submit.prevent="saveForm">\n  <button @click.stop="onClick">إرسال</button>\n</form>', '@event.modifier="handler"', 'DOM / Component Event Listener'],
+  ['Vue.js 3', ':key', 'المعرف الفريد لتتبع هوية عناصر القوائم', 'مفتاح فريد اداء قائمة تحديث', 'خاصية أساسية مع v-for والانتقالات تساعد خوارزمية Virtual DOM في Vue على تتبع العناصر وإعادة ترتيبها بأعلى كفاءة.', '<UserCard v-for="u in users" :key="u.id" :user="u" />', ':key="uniquePrimitiveValue"', 'Virtual DOM Node Identity'],
+  ['Vue.js 3', '<Transition>', 'مكون الحركات والانتقالات الانسيابية', 'حركة انتقال انيميشن دخول خروج', 'مكون مدمج يطبق كلاسات حركة الدخول والخروج تلقائياً على العنصر أو المكون الذي يظهر أو يختفي عبر v-if أو v-show.', '<Transition name="fade" mode="out-in">\n  <p v-if="show">نص متحرك بنعومة</p>\n</Transition>', '<Transition name="fade">...</Transition>', 'Built-in Animation Wrapper'],
+  ['Vue.js 3', '<Teleport>', 'نقل رسم العنصر إلى مكان آخر في DOM', 'نقل مودال نافذة منبثقة خارج شجرة', 'ينقل المحتوى البصري للمكون (مثل النوافذ المنبثقة والإشعارات) ليُرسم مباشرة داخل <body> مع الحفاظ على حالته المنطقية.', '<Teleport to="body">\n  <div v-if="open" class="modal-backdrop">نافذة منبثقة</div>\n</Teleport>', '<Teleport to="selector">...</Teleport>', 'DOM Portal Component'],
+  ['Vue.js 3', '<KeepAlive>', 'حفظ حالة المكونات النشطة في الذاكرة المؤقتة', 'حفظ حالة تبويبات كاش عدم تدمير', 'يُخزن نسخ المكونات المتبدلة ديناميكياً في الذاكرة بدلاً من تدميرها وإعادة إنشائها، مما يحفظ مدخلات المستخدم.', '<KeepAlive :max="5">\n  <component :is="activeTabComponent" />\n</KeepAlive>', '<KeepAlive>...</KeepAlive>', 'Component Instance Cache'],
+  ['Vue.js 3', '<slot>', 'منفذ تمرير المحتوى المخصص داخل المكونات', 'منفذ فتحة محتوى مخصص قالب مرن', 'يمثل مساحة قابلة للتخصيص داخل المكون الابن يستطيع المكون الأب ملأها بأي عناصر HTML أو مكونات أخرى.', '<!-- Card.vue -->\n<div class="card">\n  <header><slot name="header" /></header>\n  <main><slot>محتوى افتراضي</slot></main>\n</div>', '<slot name="slotName" :prop="val" />', 'Content Distribution Outlet'],
+  ['Vue.js 3', 'useFetch()', 'جلب البيانات التفاعلي المتكامل في Nuxt 3', 'جلب بيانات نكست سيرفر عميل SSR', 'دالة Composable في Nuxt 3 تتولى جلب البيانات تلقائياً مع دعم SSR، التخزين المؤقت، وحالات التحميل والخطأ.', 'const { data: posts, pending, error, refresh } = await useFetch("/api/posts");', 'await useFetch(url, options)', '{ data, pending, error, refresh }'],
+  ['Vue.js 3', 'useState()', 'إدارة الحالة المشتركة المتوافقة مع SSR في Nuxt', 'حالة عامة مشتركة نكست مشاركة صفحات', 'تُنشئ حالة تفاعلية مشتركة بين جميع المكونات والصفحات في Nuxt 3 وتكون آمنة تماماً للرسم على الخادم (SSR-friendly).', 'const counter = useState("counter", () => 0);\ncounter.value++;', 'useState(key, initFactory)', 'Shared SSR-Safe Ref<T>'],
+
+  // ==================== NUXT UI v3 ====================
+  ['Nuxt UI', '<UButton>', 'زر Nuxt UI الذكي متعدد الأنماط', 'زر ضغط ايقونة تحميل الوان نكست', 'المكون الأساسي للأزرار في Nuxt UI v3؛ يدعم الألوان الدلالية، الأنماط (solid, outline, soft, ghost)، وحالة التحميل والأيقونات.', '<UButton color="primary" variant="solid" icon="i-lucide-rocket" :loading="isSaving">\n  إطلاق المشروع\n</UButton>', '<UButton color variant size icon loading />', 'Props: color, variant, size, loading, to'],
+  ['Nuxt UI', '<UInput>', 'حقل الإدخال النصي المتقدم', 'حقل ادخال نص بحث ايقونة فورم', 'حقل إدخال أنيق متوافق مع التصميم الليلي ويدعم الأيقونات الجانبية، أزرار المسح، وحالات التحقق من الأخطاء.', '<UInput v-model="email" icon="i-lucide-mail" placeholder="البريد الإلكتروني" size="lg" />', '<UInput v-model placeholder icon size />', 'Props: modelValue, type, icon, trailing'],
+  ['Nuxt UI', '<UModal>', 'النافذة المنبثقة الحوارية (Modal Dialog)', 'نافذة منبثقة حوار مودال تنبيه', 'مكون نافذة حوارية مبني على Reka UI يدعم العناوين، الوصف، الإغلاق التلقائي، والوصولية الكاملة (Accessibility).', '<UModal v-model:open="isOpen" title="تأكيد الحذف">\n  <template #body>\n    <p>هل أنت متأكد من إتمام العملية؟</p>\n  </template>\n</UModal>', '<UModal v-model:open title description />', 'Props: open, title, fullscreen, overlay'],
+  ['Nuxt UI', '<UCard>', 'بطاقة عرض المحتوى المقسمة', 'بطاقة كارد حاوية راس ذيل محتوى', 'حاوية بطاقة أنيقة تقسم المحتوى تلقائياً إلى ثلاثة منافذ: الرأس (#header)، الجسم الافتراضي، والذيل (#footer).', '<UCard>\n  <template #header>عنوان البطاقة</template>\n  محتوى البطاقة الرئيسي\n  <template #footer>تذييل البطاقة</template>\n</UCard>', '<UCard variant="subtle">...</UCard>', 'Slots: #header, default, #footer'],
+  ['Nuxt UI', '<UTable>', 'جدول البيانات التفاعلي المتقدم', 'جدول بيانات صفوف اعمدة فرز تحديد', 'مكون جدول قوي مبني على TanStack Table لعرض البيانات المهيكلة مع دعم الفرز، التصفية، وتحديد الصفوف.', '<UTable :data="users" :columns="columns" :loading="isLoading" />', '<UTable :data :columns :loading />', 'Props: data, columns, sticky, loading'],
+  ['Nuxt UI', '<USelect>', 'قائمة الاختيار المنسدلة (Select Menu)', 'قائمة اختيار منسدلة خيارات تحديد', 'عنصر اختيار منسدل عصري يدعم البحث، الأيقونات، تجميع الخيارات، والاختيار المفرد أو المتعدد.', '<USelect v-model="selectedRole" :items="[\'Admin\', \'Editor\', \'Viewer\']" placeholder="اختر الصلاحية" />', '<USelect v-model :items placeholder />', 'Props: modelValue, items, multiple, icon'],
+  ['Nuxt UI', '<UTabs>', 'شريط التبويبات التفاعلي', 'تبويبات تنقل اقسام شريط محتوى', 'مكون لتنظيم المحتوى في تبويبات أفقية أو عمودية مع انتقالات بصرية سلسة ودعم الأيقونات والشارات.', '<UTabs :items="[{ label: \'الحساب\', icon: \'i-lucide-user\' }, { label: \'الأمان\' }]" />', '<UTabs :items orientation="horizontal" />', 'Props: items, defaultValue, variant'],
+  ['Nuxt UI', '<UAlert>', 'صندوق التنبيهات والرسائل الإرشادية', 'تنبيه اشعار تحذير رسالة خطأ معلومة', 'يعرض رسائل تنبيه بارزة للمستخدم مع أيقونة وعنوان ووصف وأزرار إجراءات سريعة بألوان دلالية.', '<UAlert title="تحديث جديد!" description="تم إصدار النسخة الثالثة بنجاح." color="primary" variant="subtle" />', '<UAlert title description color icon />', 'Props: title, description, color, actions'],
+  ['Nuxt UI', '<UBadge>', 'الشارة التعريفية المصغرة', 'شارة تاج وسم حالة تصنيف ملون', 'عنصر صغير لعرض الحالة أو التصنيفات أو العدادات الرقمية بألوان وأحجام متعددة.', '<UBadge color="success" variant="subtle" size="md">متصل الآن</UBadge>', '<UBadge color variant size label />', 'Props: label, color, variant, size'],
+  ['Nuxt UI', '<UAvatar>', 'الصورة الرمزية للمستخدم', 'صورة رمزية افاتار مستخدم بروفايل حرف', 'يعرض صورة المستخدم الدائرية مع توليد الأحرف الأولى تلقائياً (Fallback) في حال عدم توفر الصورة.', '<UAvatar src="https://github.com/vuejs.png" alt="Vue" size="lg" chip-color="primary" />', '<UAvatar src alt text size chip />', 'Props: src, alt, text, size, icon'],
+  ['Nuxt UI', '<USwitch>', 'مفتاح التبديل الفوري (Toggle Switch)', 'مفتاح تبديل تشغيل ايقاف خيار', 'عنصر تحكم ثنائي الحالة (تشغيل/إيقاف) مثالي لصفحات الإعدادات وتفعيل الميزات الفورية.', '<USwitch v-model="enabled" label="تفعيل الوضع الليلي الذكي" color="primary" />', '<USwitch v-model label description color />', 'Props: modelValue, label, loading, size'],
+  ['Nuxt UI', '<UCheckbox>', 'مربع الاختيار والتأشير', 'مربع اختيار صح تحديد موافقة', 'مربع تأشير يدعم الحالة الثنائية وحالة عدم التحديد الجزئي (indeterminate) مع عنوان ووصف.', '<UCheckbox v-model="agreed" label="أوافق على الشروط والأحكام" required />', '<UCheckbox v-model label description />', 'Props: modelValue, label, indeterminate'],
+  ['Nuxt UI', '<UTextarea>', 'حقل النصوص متعددة الأسطر', 'نص طويل فقرة تعليق رسالة اسطر', 'حقل إدخال نصي كبير للرسائل والملاحظات يدعم التمدد التلقائي لعدد الأسطر (autoresize).', '<UTextarea v-model="bio" :rows="4" autoresize placeholder="اكتب نبذة عنك..." />', '<UTextarea v-model :rows autoresize />', 'Props: modelValue, rows, maxrows, autoresize'],
+  ['Nuxt UI', '<UDropdownMenu>', 'القائمة المنسدلة للإجراءات السريعة', 'قائمة منسدلة خيارات اوامر كليك', 'قائمة إجراءات منبثقة تظهر عند النقر على زر، تدعم الأيقونات، اختصارات لوحة المفاتيح، والقوائم الفرعية.', '<UDropdownMenu :items="menuItems">\n  <UButton label="الخيارات" icon="i-lucide-chevron-down" />\n</UDropdownMenu>', '<UDropdownMenu :items>Trigger</UDropdownMenu>', 'Props: items, arrow, portal, disabled'],
+  ['Nuxt UI', '<UDrawer>', 'الدرج الجانبي أو السفلي المنزلق', 'درج لوحة جانبية سحب موبايل قائمة', 'لوحة منزلقة من حواف الشاشة مثالية للقوائم الجانبية في الجوال أو الفلاتر المتقدمة.', '<UDrawer v-model:open="isDrawerOpen" title="فلاتر البحث">\n  <template #body>محتوى الدرج</template>\n</UDrawer>', '<UDrawer v-model:open direction="right" />', 'Props: open, direction, title, handle'],
+  ['Nuxt UI', '<UTooltip>', 'التلميح العائم عند التمرير (Tooltip)', 'تلميح شرح عائم تمرير ماوس مساعدة', 'يعرض مربع معلومات صغير وأنيق عند تمرير مؤشر الفأرة أو التركيز على العنصر مع إمكانية عرض اختصار Kbd.', '<UTooltip text="حفظ التغييرات" :kbds="[\'Ctrl\', \'S\']">\n  <UButton icon="i-lucide-save" />\n</UTooltip>', '<UTooltip text :kbds>Element</UTooltip>', 'Props: text, kbds, delayDuration'],
+  ['Nuxt UI', '<UPagination>', 'شريط ترقيم الصفحات والتنقل', 'ترقيم صفحات تنقل التالي السابق جدول', 'أزرار تنقل بين صفحات البيانات الطويلة مع حساب تلقائي لأرقام الصفحات وأزرار البداية والنهاية.', '<UPagination v-model:page="currentPage" :total="120" :items-per-page="10" />', '<UPagination v-model:page :total :items-per-page />', 'Props: page, total, itemsPerPage, siblingCount'],
+  ['Nuxt UI', '<UProgress>', 'شريط التقدم والتحميل البصري', 'شريط تقدم نسبة تحميل انجاز', 'يعرض نسبة إنجاز مهمة معينة (0-100%) أو شريط تحميل غير محدد المدة بألوان متدرجة.', '<UProgress :model-value="75" color="primary" status />', '<UProgress :model-value :max color size />', 'Props: modelValue, max, status, animation'],
+  ['Nuxt UI', '<USkeleton>', 'الهيكل العظمي المؤقت للتحميل', 'هيكل تحميل مؤقت انتظار شكل نبض', 'يعرض أشكالاً رمادية نابضة تحاكي تخطيط المحتوى أثناء انتظار جلب البيانات من الخادم لتحسين تجربة المستخدم.', '<div class="flex items-center gap-3">\n  <USkeleton class="h-12 w-12 rounded-full" />\n  <USkeleton class="h-4 w-48" />\n</div>', '<USkeleton class="h-4 w-full" />', 'Props: as, class (Tailwind sizing)'],
+  ['Nuxt UI', '<UKbd>', 'عرض اختصارات أزرار لوحة المفاتيح', 'كيبورد اختصار زر مفتاح لوحة', 'مكون بصري أنيق لعرض مفاتيح لوحة المفاتيح مثل Ctrl و Enter و Esc بتصميم يحاكي الأزرار الحقيقية.', '<div class="flex gap-1">\n  <UKbd value="meta" />\n  <UKbd value="K" />\n</div>', '<UKbd value="K" size="md" />', 'Props: value, size, variant'],
+  ['Nuxt UI', '<UAccordion>', 'القائمة المطوية القابلة للتمدد (Accordion)', 'اكورديون طي فتح اسئلة شائعة اقسام', 'قائمة عناصر قابلة للطي والفتح لعرض الأسئلة الشائعة أو الأقسام الطويلة دون ازدحام الشاشة.', '<UAccordion :items="[{ label: \'ما هو VueLexicon؟\', content: \'قاموس ومترجم ذكي للمطورين.\' }]" />', '<UAccordion :items type="single|multiple" />', 'Props: items, type, collapsible'],
+
+  // ==================== HTML5 ====================
+  ['HTML5', '<a>', 'وسم الرابط التشعبي (Anchor Link)', 'رابط انتقال صفحة موقع تحميل', 'يُنشئ رابطاً تشعبياً للانتقال إلى صفحة أخرى، أو قسم داخل نفس الصفحة، أو فتح البريد والملفات.', '<a href="https://vuejs.org" target="_blank" rel="noopener">\n  الموقع الرسمي لـ Vue.js\n</a>', '<a href="url" target="_blank">...</a>', 'Requires Closing Tag </a>'],
+  ['HTML5', '<button>', 'عنصر الزر التفاعلي القياسي', 'زر نقر ارسال تفاعل فورم', 'عنصر تفاعلي قابل للنقر لتنفيذ أوامر جافاسكربت أو إرسال النماذج؛ يُنصح دائماً بتحديد خاصية type له.', '<button type="button" class="btn-primary">\n  اضغط هنا\n</button>', '<button type="button|submit">...</button>', 'Requires Closing Tag </button>'],
+  ['HTML5', 'class', 'الخاصية العامة لتصنيف وتنسيق العناصر', 'كلاس فئة تنسيق ستايل مجموعة', 'خاصية عالمية تُضاف لأي وسم HTML لربطه بكلاسات CSS (مثل Tailwind) أو تحديده في الجافاسكربت.', '<div class="flex items-center gap-4 bg-slate-900 p-4">\n  محتوى منسق\n</div>', 'class="class1 class2 ..."', 'Global HTML Attribute'],
+  ['HTML5', '<canvas>', 'لوحة الرسم الثنائي والثلاثي الأبعاد', 'رسم جرافيك العاب لوحة بكسل شارت', 'مساحة رسم نقطية في الصفحة تُستخدم مع JavaScript (Canvas API أو WebGL) لرسم المخططات البيانية والألعاب.', '<canvas id="chartCanvas" width="400" height="200"></canvas>', '<canvas width="w" height="h"></canvas>', 'Requires Closing Tag </canvas>'],
+  ['HTML5', '<div>', 'الحاوية التقسيمية العامة (Division)', 'حاوية صندوق تقسيم تخطيط عام', 'العنصر الكتلي (Block) الأكثر استخداماً لتجميع العناصر وتطبيق تخطيطات Flexbox و Grid عليها.', '<div class="container mx-auto">\n  <p>محتوى داخل حاوية</p>\n</div>', '<div>...</div>', 'Block Container (Closing Tag)'],
+  ['HTML5', '<form>', 'نموذج إدخال وإرسال بيانات المستخدم', 'نموذج فورم ادخال تسجيل بيانات ارسال', 'يجمع حقول الإدخال المختلفة وأزرار الإرسال لجمع البيانات من المستخدم وإرسالها للخادم أو معالجتها.', '<form action="/login" method="POST">\n  <input name="user" required />\n  <button type="submit">دخول</button>\n</form>', '<form action="" method="POST">...</form>', 'Requires Closing Tag </form>'],
+  ['HTML5', '<h1>-<h6>', 'عناوين الأقسام الهرمية (Headings)', 'عنوان رئيسي فرعي خط كبير سيو', 'ستة مستويات من العناوين الدلالية تبدأ من <h1> (الأهم في الصفحة لمحركات البحث SEO) حتى <h6>.', '<h1>العنوان الرئيسي للمقال</h1>\n<h2>القسم الفرعي الأول</h2>', '<h1>Main Title</h1> ... <h6>Sub</h6>', 'Requires Closing Tag </h1-h6>'],
+  ['HTML5', '<iframe>', 'إطار تضمين صفحة ويب خارجية', 'اطار مدمج فيديو يوتيوب خريطة خارجي', 'يُدرج نافذة صفحة ويب أخرى أو فيديو أو خريطة تفاعلية داخل الصفحة الحالية بأمان.', '<iframe src="https://example.com" width="100%" height="300" loading="lazy"></iframe>', '<iframe src="url" title="..."></iframe>', 'Requires Closing Tag </iframe>'],
+  ['HTML5', '<img>', 'وسم عرض الصور الرسومية', 'صورة عرض جرافيك ايقونة تحميل', 'وسم ذاتي الإغلاق لإدراج الصور في المستند مع ضرورة كتابة النص البديل (alt) لدعم قارئات الشاشة.', '<img src="/logo.svg" alt="شعار التطبيق" loading="lazy" width="120" />', '<img src="path" alt="description" />', 'Self-Closing / Void Element'],
+  ['HTML5', '<input>', 'حقل الإدخال المتعدد الأنواع', 'ادخال حقل نص رقم ايميل باسورد', 'العنصر الأساسي لاستقبال بيانات المستخدم؛ يتغير سلوكه كلياً حسب خاصية type (text, password, date, checkbox...).', '<input type="email" placeholder="name@domain.com" required />', '<input type="text|email|number..." />', 'Self-Closing / Void Element'],
+  ['HTML5', '<label>', 'تسمية توضيحية مرتبطة بحقل إدخال', 'تسمية عنوان حقل نقر وصولية', 'يربط نصاً توضيحياً بحقل الإدخال بحيث يؤدي النقر على النص إلى تفعيل الحقل مباشرة وتحسين الوصولية.', '<label for="user-email">البريد الإلكتروني:</label>\n<input id="user-email" type="email" />', '<label for="inputId">...</label>', 'Requires Closing Tag </label>'],
+  ['HTML5', '<main>', 'المحتوى الأساسي الفريد للصفحة', 'رئيسي محتوى اساسي دلالي صفحة', 'وسم دلالي يحدد المحتوى المحوري الفريد للوثيقة (لا يشمل الهيدر أو الفوتر أو القوائم الجانبية المتكررة).', '<main id="main-content">\n  <h1>لوحة البيانات</h1>\n</main>', '<main>...</main>', 'Semantic Landmark (Closing Tag)'],
+  ['HTML5', '<section>', 'قسم موضوعي مستقل في الوثيقة', 'قسم جزء فصل موضوعي دلالي', 'يمثل قسماً موضوعياً متكاملاً داخل الصفحة وعادة ما يحتوي على عنوان خاص به (<h2> مثلاً).', '<section aria-labelledby="features-heading">\n  <h2 id="features-heading">المميزات</h2>\n</section>', '<section>...</section>', 'Semantic Section (Closing Tag)'],
+  ['HTML5', '<nav>', 'كتلة روابط التنقل الرئيسية', 'تنقل قائمة روابط منيو هيدر', 'وسم دلالي مخصص لاحتواء قوائم التنقل الرئيسية أو فهارس المحتويات في الموقع.', '<nav aria-label="القائمة الرئيسية">\n  <a href="/">الرئيسية</a>\n  <a href="/docs">التوثيق</a>\n</nav>', '<nav>...</nav>', 'Semantic Navigation Tag'],
+  ['HTML5', '<p>', 'فقرة نصية قياسية (Paragraph)', 'فقرة نص كتابة مقالة سطر', 'يُستخدم لتنظيم وعرض الفقرات النصية مع إضافة مسافات عمودية تلقائية قبل وبعد الفقرة.', '<p class="leading-relaxed">\n  هذه فقرة نصية تشرح فكرة المكون بوضوح.\n</p>', '<p>Paragraph text...</p>', 'Requires Closing Tag </p>'],
+  ['HTML5', '<span>', 'حاوية نصية سطرية (Inline Container)', 'سطري نص تلوين جزء كلمة', 'عنصر سطري (Inline) لا يكسر السطر، يُستخدم لتغليف جزء من النص لتلوينه أو التحكم به برمجياً.', '<p>الحالة الحالية: <span class="text-emerald-400">نشط</span></p>', '<span>inline content</span>', 'Inline Element (Closing Tag)'],
+  ['HTML5', '<select>', 'قائمة خيارات منسدلة أصلية', 'قائمة اختيار منسدلة خيارات فورم', 'عنصر نموذج ينشئ قائمة منسدلة تحتوي بداخلها على وسوم <option> ليختار المستخدم منها.', '<select name="country">\n  <option value="sa">السعودية</option>\n  <option value="eg">مصر</option>\n</select>', '<select><option>...</option></select>', 'Requires Closing Tag </select>'],
+  ['HTML5', '<option>', 'خيار مفرد داخل قائمة <select>', 'خيار عنصر قائمة قيمة اختيار', 'يمثل خياراً واحداً قابلاً للتحديد داخل قائمة <select> أو <datalist> ويحمل القيمة المرسلة في value.', '<option value="vue3" selected>Vue.js 3 Framework</option>', '<option value="val">Label</option>', 'Requires Closing Tag </option>'],
+  ['HTML5', '<table>', 'جدول البيانات المهيكل (صفوف وأعمدة)', 'جدول بيانات صفوف اعمدة خلايا', 'يُستخدم لعرض البيانات الجدولية المنظمة باستخدام <thead> للرأس و <tbody> للجسم و <tr> للصفوف و <td> للخلايا.', '<table>\n  <thead><tr><th>الاسم</th><th>الدور</th></tr></thead>\n  <tbody><tr><td>أحمد</td><td>مطور</td></tr></tbody>\n</table>', '<table><tr><td>...</td></tr></table>', 'Requires Closing Tag </table>'],
+  ['HTML5', '<template>', 'قالب HTML غير مرئي للاستخدام البرمجي', 'قالب مخفي فيو مكون نسخة', 'يحتفظ بمحتوى HTML مخفي لا يظهر عند تحميل الصفحة، ويُستخدم أساسياً في مكونات Vue.js لتعريف هيكل الواجهة.', '<template>\n  <div class="card">{{ title }}</div>\n</template>', '<template>...</template>', 'Requires Closing Tag </template>'],
+  ['HTML5', '<ul> / <li>', 'قائمة نقطية غير مرتبة وعناصرها', 'قائمة نقاط عناصر تعداد غير مرتب', '<ul> تنشئ قائمة نقطية (Unordered List)، ويمثل كل وسم <li> بداخلها عنصراً مستقلاً في القائمة.', '<ul class="list-disc pr-5">\n  <li>سرعة الأداء</li>\n  <li>سهولة التعلم</li>\n</ul>', '<ul><li>Item</li></ul>', 'Requires Closing Tags </ul> </li>'],
+  ['HTML5', '<video>', 'مشغل الفيديو المدمج في المتصفح', 'فيديو مشغل عرض ميديا صوت صورة', 'يدرج مشغل فيديو أصلي يدعم التحكم بالتشغيل، الإيقاف، كتم الصوت، وتعدد مصادر الفيديو.', '<video controls width="100%" poster="/thumb.jpg">\n  <source src="/intro.mp4" type="video/mp4" />\n</video>', '<video controls src="..."></video>', 'Requires Closing Tag </video>'],
+  ['HTML5', '<audio>', 'مشغل الملفات الصوتية المدمج', 'صوت مشغل موسيقى بودكاست تسجيل', 'يُضمن محتوى صوتياً في الصفحة مع واجهة تحكم قياسية للتشغيل ومستوى الصوت.', '<audio controls src="/notification.mp3"></audio>', '<audio controls src="..."></audio>', 'Requires Closing Tag </audio>'],
+  ['HTML5', '<dialog>', 'صندوق الحوار الأصلي في HTML5', 'حوار مودال نافذة اصلية متصفح', 'عنصر HTML5 حديث لإنشاء النوافذ المنبثقة وصناديق الحوار الأصلية مع دعم دالة showModal() وخلفية ::backdrop.', '<dialog id="myDialog">\n  <p>نافذة حوار أصلية</p>\n</dialog>', '<dialog open>...</dialog>', 'Requires Closing Tag </dialog>'],
+
+  // ==================== CSS3 ====================
+  ['CSS3', 'animation & @keyframes', 'الحركات المتسلسلة وإطاراتها المفتاحية', 'حركة انيميشن اطارات تكرار دوران نبض', 'تسمح بإنشاء حركات بصرية متقدمة متعددة المراحل عبر تعريف مسار الحركة في @keyframes وربطها بالعنصر.', '@keyframes pulseGlow {\n  0%, 100% { opacity: 1; }\n  50% { opacity: 0.4; }\n}\n.badge { animation: pulseGlow 2s infinite; }', 'animation: name duration timing count;', 'CSS Animation Module'],
+  ['CSS3', 'background', 'تنسيق الخلفيات والألوان المتدرجة والصور', 'خلفية لون تدرج صورة غطاء', 'خاصية شاملة لضبط لون الخلفية، الصور، التدرجات اللونية (linear/radial-gradient)، وموضعها.', '.hero {\n  background: linear-gradient(135deg, #020420, #111c18);\n}', 'background: color | gradient | image;', 'Shorthand Background Property'],
+  ['CSS3', 'border & border-radius', 'الحدود المحيطة واستدارة الزوايا', 'اطار حدود حواف دائرية زوايا', 'border يرسم إطاراً حول العنصر (السمك، النمط، اللون)، بينما border-radius يتحكم بنعومة واستدارة الزوايا.', '.card {\n  border: 1px solid #00DC82;\n  border-radius: 16px;\n}', 'border: 1px solid color; border-radius: px;', 'Box Border Styling'],
+  ['CSS3', 'box-shadow', 'الظلال الصندوقية والتوهج الضوئي', 'ظل توهج اضاءة بروز عمق بطاقة', 'تضيف ظلاً خارجياً أو داخلياً (inset) حول العنصر، وتُستخدم أيضاً لعمل تأثير التوهج النيون في الوضع الليلي.', '.glow-card {\n  box-shadow: 0 0 30px -5px rgba(0, 220, 130, 0.25);\n}', 'box-shadow: x y blur spread color;', 'Visual Elevation & Glow'],
+  ['CSS3', 'color', 'لون النصوص والأيقونات الخطية', 'لون نص خط كتابة امامي', 'تحدد اللون الأمامي لمحتوى النص داخل العنصر، وتورث قيمتها تلقائياً للعناصر الأبناء ولخاصية currentColor.', '.title {\n  color: #00DC82;\n}', 'color: #hex | rgb() | hsl();', 'Inherited Text Color'],
+  ['CSS3', 'display', 'نظام عرض وتموضع العنصر في التخطيط', 'عرض تخطيط فليكس جريد بلوك اخفاء', 'الخاصية الأهم لتحديد كيفية رسم العنصر وتفاعل أبنائه (block, inline, flex, grid, أو none للإخفاء الكامل).', '.layout {\n  display: flex;\n  gap: 1rem;\n}', 'display: flex | grid | block | none;', 'Layout Display Mode'],
+  ['CSS3', 'flex (Flexbox)', 'نظام الصندوق المرن أحادي البعد', 'فليكس مرن صف عمود محاذاة توزيع', 'نموذج تخطيط قوي لتوزيع العناصر ومحاذاة المسافات بينها بمرونة عالية في اتجاه أفقي (row) أو عمودي (column).', '.toolbar {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n}', 'display: flex; flex: 1 1 auto;', '1D Flexible Box Layout'],
+  ['CSS3', 'gap', 'المسافات الفاصلة بين عناصر Flex و Grid', 'مسافة فراغ فاصل بين العناصر شبكة', 'تحدد المسافة الفاصلة (الأفقية والعمودية) بين العناصر الأبناء داخل حاويات Flexbox و CSS Grid دون هوامش خارجية.', '.grid-cards {\n  display: grid;\n  gap: 24px;\n}', 'gap: row-gap column-gap;', 'Grid / Flex Gutter Spacing'],
+  ['CSS3', 'grid (CSS Grid)', 'نظام الشبكة ثنائي الأبعاد (صفوف وأعمدة)', 'شبكة جريد اعمدة صفوف تقسيم تخطيط', 'أقوى نظام تخطيط في CSS لبناء واجهات معقدة ثنائية الأبعاد تتحكم بالصفوف والأعمدة في آنٍ واحد.', '.dashboard {\n  display: grid;\n  grid-template-columns: repeat(12, minmax(0, 1fr));\n  gap: 1.5rem;\n}', 'display: grid; grid-template-columns: ...;', '2D Grid Layout System'],
+  ['CSS3', ':hover & :focus', 'الفئات الزائفة للتفاعل والتركيز', 'تمرير ماوس تركيز تفاعل زر حقل', ':hover يُفعل التنسيق عند تمرير مؤشر الفأرة، بينما :focus يُفعل عند التركيز على الحقل أو الزر عبر الفأرة أو الكيبورد.', '.btn:hover {\n  background-color: #00b86b;\n}\n.input:focus {\n  border-color: #00DC82;\n}', 'selector:hover, selector:focus { ... }', 'Interactive Pseudo-Classes'],
+  ['CSS3', 'justify-content & align-items', 'محاذاة العناصر على المحور الرئيسي والعمودي', 'محاذاة توسيط توزيع افقي عمودي فليكس', 'justify-content يوزع العناصر على المحور الرئيسي، و align-items يحاذيها على المحور المتقاطع في Flex و Grid.', '.center-box {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n}', 'justify-content: center | space-between;', 'Box Alignment Properties'],
+  ['CSS3', 'margin & padding', 'الهوامش الخارجية والحشوة الداخلية', 'هامش حشوة مسافة خارجية داخلية صندوق', 'margin يتحكم بالمسافة الفاصلة خارج حدود العنصر، بينما padding يتحكم بالمسافة الداخلية بين الحد والمحتوى.', '.card {\n  padding: 24px;\n  margin-bottom: 16px;\n}', 'margin: 0 auto; padding: 1rem 1.5rem;', 'CSS Box Model Spacing'],
+  ['CSS3', '@media', 'استعلامات الوسائط للتصميم المتجاوب (Responsive)', 'متجاوب شاشات جوال تابلت ميديا حجم', 'تُطبق قواعد تنسيق مخصصة بناءً على حجم شاشة الجهاز أو اتجاهه أو تفضيل الوضع الليلي.', '@media (max-width: 768px) {\n  .sidebar { display: none; }\n}', '@media (min-width: 1024px) { ... }', 'Responsive Media Query'],
+  ['CSS3', 'opacity & backdrop-filter', 'الشفافية وتأثير الزجاج الضبابي (Glassmorphism)', 'شفافية ضبابي زجاجي بلور خلفية', 'opacity يضبط شفافية العنصر، بينما backdrop-filter: blur() يطبق ضبابية زجاجية عصرية على ما خلف العنصر.', '.glass-header {\n  background: rgba(2, 4, 32, 0.8);\n  backdrop-filter: blur(16px);\n}', 'opacity: 0..1; backdrop-filter: blur(12px);', 'Visual Filter & Transparency'],
+  ['CSS3', 'overflow / overflow-x / y', 'التحكم بالمحتوى الفائض وشريط التمرير', 'فائض تمرير سكرول اخفاء قص محتوى', 'تحدد سلوك الحاوية عندما يتجاوز حجم المحتوى أبعادها: إما إخفاؤه (hidden) أو إظهار شريط تمرير (auto / scroll).', '.sidebar-list {\n  max-height: 600px;\n  overflow-y: auto;\n}', 'overflow: hidden | auto | scroll;', 'Scroll & Clipping Control'],
+  ['CSS3', 'position', 'نظام التموضع المكاني للعناصر', 'موضع ثابت مطلق نسبي لصق مكان', 'تحدد طريقة حساب موقع العنصر في الصفحة: relative (نسبي)، absolute (مطلق)، fixed (ثابت بالشاشة)، أو sticky (لاصق).', '.navbar {\n  position: sticky;\n  top: 0;\n}', 'position: relative | absolute | sticky | fixed;', 'Coordinate Positioning'],
+  ['CSS3', 'transform & transition', 'التحويلات الهندسية والانتقالات الناعمة', 'تحويل تكبير تحريك تدوير انتقال ناعم', 'transform يحرك أو يكبر أو يدور العنصر عبر GPU، و transition يجعل التغير بين حالتين يجري بنعومة زمنية.', '.card {\n  transition: transform 0.25s ease;\n}\n.card:hover {\n  transform: translateY(-4px) scale(1.01);\n}', 'transform: scale(1.05); transition: all 0.2s;', 'Hardware-Accelerated Motion'],
+  ['CSS3', 'width & height', 'التحكم بالعرض والارتفاع وأبعادهما القصوى', 'عرض ارتفاع حجم ابعاد شاشة كاملة', 'تحدد أبعاد العنصر بوحدات مثل px, %, rem, vw, vh مع دعم الحد الأدنى (min-) والحد الأقصى (max-).', '.container {\n  width: 100%;\n  max-width: 1440px;\n  min-height: 100vh;\n}', 'width: 100%; max-width: 1280px;', 'Box Dimensions Sizing'],
+  ['CSS3', 'z-index', 'ترتيب طبقات العناصر المتراكبة (Stacking Order)', 'طبقة ترتيب فوق تحت قائمة منسدلة', 'تتحكم في أولوية ظهور العناصر فوق بعضها على المحور الرأسي (Z-axis) للعناصر التي تملك position غير static.', '.search-section { position: relative; z-index: 40; }\n.dropdown-menu { position: absolute; z-index: 50; }', 'z-index: 10 | 40 | 50 | 999;', 'Z-Axis Layer Stacking'],
+
+  // ==================== ADDITIONAL FULL A-Z COVERAGE TERMS ====================
+  ['JavaScript', 'Array.from()', 'إنشاء مصفوفة حقيقية من كائن شبيه بالمصفوفة', 'تحويل مصفوفة عناصر نص تكرار', 'تحول الكائنات القابلة للتكرار (مثل NodeList أو Set أو السلاسل النصية) إلى مصفوفة JS كاملة المزايا.', 'const chars = Array.from("Vue3");\n// ["V", "u", "e", "3"]', 'Array.from(iterable, mapFn?)', 'New Array Instance'],
+  ['JavaScript', 'bind() / call()', 'ربط واستدعاء الدالة بسياق this مخصص', 'ربط سياق استدعاء دالة كائن', 'تسمح بتحديد الكائن الذي ستشير إليه كلمة this داخل الدالة سواء بإنشاء دالة مربوطة جديدة أو استدعائها فوراً.', 'const greet = function() { return `Hi ${this.name}`; };\nconst bound = greet.bind({ name: "Ali" });', 'fn.bind(thisArg) / fn.call(thisArg, ...args)', 'Bound Function / Result'],
+  ['JavaScript', 'debouncePattern', 'تأخير تنفيذ الدالة حتى توقف تكرار الحدث', 'تأخير بحث تحسين اداء كتابة مستمرة', 'تقنية أساسية لتحسين الأداء (خصوصاً في حقول البحث) تمنع استدعاء الدالة إلا بعد توقف المستخدم عن الكتابة لوقت قصير.', 'function debounce(fn, ms = 300) {\n  let t;\n  return (...args) => {\n    clearTimeout(t);\n    t = setTimeout(() => fn(...args), ms);\n  };\n}', 'debounce(callback, delayMs)', 'Debounced Wrapper Function'],
+  ['JavaScript', 'EventLoop', 'حلقة الأحداث وتنسيق المهام غير المتزامنة', 'حلقة احداث تزامن طابور مهام متصفح', 'الآلية الهندسية في محرك جافاسكربت التي تنظم تنفيذ المهام المتزامنة (Call Stack) والوعود (Microtasks) والمؤقتات.', 'console.log("1: Sync");\nsetTimeout(() => console.log("3: Macro"), 0);\nPromise.resolve().then(() => console.log("2: Micro"));', 'Call Stack -> Microtasks -> Macrotasks', 'JS Runtime Execution Model'],
+  ['JavaScript', 'Geolocation API', 'واجهة تحديد الموقع الجغرافي للمستخدم', 'موقع جغرافي احداثيات خريطة متصفح', 'تتيح لتطبيق الويب الحصول على خطوط الطول والعرض للمستخدم بعد موافقته الصريحة على مشاركة الموقع.', 'navigator.geolocation.getCurrentPosition((pos) => {\n  console.log(pos.coords.latitude, pos.coords.longitude);\n});', 'navigator.geolocation.getCurrentPosition(cb)', 'GeolocationPosition Object'],
+  ['JavaScript', 'History API', 'التحكم بسجل تصفح المتصفح وعنوان URL', 'سجل تصفح رابط راوتر انتقال بدون تحديث', 'الأساس الذي يقوم عليه Vue Router لتغيير الرابط في المتصفح (pushState / replaceState) دون إعادة تحميل الصفحة.', 'history.pushState({ page: 2 }, "", "/dictionary");', 'history.pushState(state, title, url)', 'SPA Routing Foundation'],
+  ['JavaScript', 'IntersectionObserver', 'مراقب تقاطع وظهور العناصر في شاشة العرض', 'مراقب ظهور تحميل كسول سكرول انيميشن', 'واجهة عالية الأداء ترصد متى يدخل العنصر إلى منطقة الرؤية (Viewport) لتفعيل التحميل الكسول أو الحركات.', 'const io = new IntersectionObserver((entries) => {\n  entries.forEach(e => e.isIntersecting && loadMore());\n});', 'new IntersectionObserver(callback, opts)', 'Observer Instance'],
+  ['JavaScript', 'JWT (JSON Web Token)', 'رمز التوثيق الرقمي المشفر للمستخدمين', 'توكن مصادقة حماية تسجيل دخول جلسة', 'معيار مفتوح لتبادل معلومات هوية المستخدم وصلاحياته بأمان بين العميل والخادم عبر رمز موقع رقمياً.', 'const headers = {\n  Authorization: `Bearer ${localStorage.getItem("token")}`\n};', 'Header.Payload.Signature', 'Stateless Auth Token'],
+  ['JavaScript', 'KeyframeEffect', 'واجهة برمجة الحركات المباشرة (Web Animations API)', 'حركة برمجية تاثير اطارات جافاسكربت', 'تسمح بإنشاء والتحكم بالحركات البصرية مباشرة من جافاسكربت بأداء مماثل لحركات CSS.', 'element.animate([\n  { transform: "scale(0.95)", opacity: 0 },\n  { transform: "scale(1)", opacity: 1 }\n], { duration: 250 });', 'el.animate(keyframes, options)', 'Animation Instance'],
+  ['JavaScript', 'MutationObserver', 'مراقب التعديلات الهيكلية في شجرة DOM', 'مراقب شجرة تعديل عناصر خصائص', 'يرصد أي إضافة أو حذف للعناصر أو تعديل على الخصائص داخل جزء محدد من شجرة DOM.', 'const obs = new MutationObserver(() => console.log("DOM Changed"));\nobs.observe(document.body, { childList: true });', 'new MutationObserver(callback)', 'DOM Mutation Watcher'],
+  ['JavaScript', 'Navigator.clipboard', 'واجهة نسخ ولصق النصوص من الحافظة', 'نسخ حافظة كود لصق زر', 'الطريقة الحديثة والآمنة لنسخ الأكواد والنصوص برمجياً إلى حافظة نظام التشغيل بضغطة زر.', 'await navigator.clipboard.writeText(codeSnippet);\nshowToast("تم النسخ للحافظة!");', 'navigator.clipboard.writeText(text)', 'Promise<void>'],
+  ['JavaScript', 'Proxy', 'الوكيل الاعتراضي للكائنات (أساس تفاعلية Vue 3)', 'بروكسي وكيل اعتراض تفاعلية فيو', 'كائن يغلف كائناً آخر ويعترض عمليات القراءة (get) والكتابة (set) عليه؛ وهو المحرك الأساسي لنظام التفاعلية في Vue 3.', 'const proxy = new Proxy(target, {\n  get(obj, prop) { track(obj, prop); return obj[prop]; },\n  set(obj, prop, val) { obj[prop] = val; trigger(obj, prop); return true; }\n});', 'new Proxy(target, handlerTraps)', 'Reactive Proxy Object'],
+  ['JavaScript', 'RegExp (Regular Expressions)', 'التعبيرات النمطية للبحث والتحقق من النصوص', 'تعبير نمط فحص ايميل نص بحث استبدال', 'أنماط قوية لمطابقة النصوص والتحقق من صحة المدخلات (مثل البريد الإلكتروني أو أرقام الهواتف) واستبدالها.', 'const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\nconst isValid = emailRegex.test("dev@vue.org");', '/pattern/flags or new RegExp()', 'RegExp Matcher Object'],
+  ['JavaScript', 'Set & Map', 'مجموعات البيانات الفريدة والخرائط المفتاحية', 'مجموعة بدون تكرار خريطة مفاتيح سريعة', 'Set تخزن قيماً فريدة فقط وتمنع التكرار تلقائياً، بينما Map تخزن أزواج (مفتاح/قيمة) بأداء بحث فائق.', 'const uniqueTags = [...new Set(["vue", "css", "vue"])];\n// ["vue", "css"]', 'new Set(iterable) / new Map()', 'Collection Data Structures'],
+  ['JavaScript', 'URLSearchParams', 'قراءة وتعديل معاملات رابط الصفحة (Query String)', 'رابط معاملات بحث فلتر باراميتر', 'واجهة مريحة لقراءة وتعديل وبناء معاملات الرابط مثل ?category=vue&letter=A بكل سهولة.', 'const params = new URLSearchParams("?cat=vue&q=ref");\nconsole.log(params.get("cat")); // "vue"', 'new URLSearchParams(queryString)', 'URL Query Manager'],
+  ['JavaScript', 'WebSockets', 'الاتصال الثنائي اللحظي المستمر مع الخادم', 'اتصال لحظي شات مباشر اشعارات سوكيت', 'بروتوكول يفتح قناة اتصال ثنائية الاتجاه ومستمرة بين المتصفح والخادم لتطبيقات الدردشة والبيانات الحية.', 'const ws = new WebSocket("wss://echo.websocket.org");\nws.onmessage = (e) => console.log("Message:", e.data);', 'new WebSocket(wssUrl)', 'Real-time Socket Connection'],
+  ['JavaScript', 'Zero-Index & NaN', 'الفهرسة الصفرية وقيمة "ليس رقماً" (Not-a-Number)', 'فهرس صفر ليس رقم فحص حساب', 'المصفوفات في البرمجة تبدأ من الفهرس 0، بينما NaN يمثل نتيجة عملية رياضية غير صالحة ويُفحص عبر Number.isNaN().', 'const arr = ["First", "Second"];\nconsole.log(arr[0]); // "First"\nconsole.log(Number.isNaN(0 / 0)); // true', 'arr[0] / Number.isNaN(val)', 'Core JS Primitives'],
+
+  // ==================== EXTRA VUE 3 & NUXT UI TERMS FOR RICHNESS ====================
+  ['Vue.js 3', 'shallowRef()', 'مرجع تفاعلي سطحي لتحسين الأداء العالي', 'اداء تفاعلي سطحي بيانات كبيرة', 'يرصد فقط تغيير قيمة .value ككل دون التعمق في الخصائص الداخلية للكائن، مما يوفر أداءً هائلاً مع البيانات الضخمة.', 'const bigList = shallowRef(hugeArray);\n// يتم التحديث فقط عند استبدال المرجع:\nbigList.value = [...bigList.value, newItem];', 'const state = shallowRef(obj)', 'Shallow RefImpl<T>'],
+  ['Vue.js 3', 'toRefs() / toRef()', 'تحويل خصائص reactive إلى مراجع ref مستقلة', 'تحويل تفكيك تفاعلي خصائص الحفاظ', 'تسمح بتفكيك كائن reactive أو props إلى متغيرات مستقلة دون فقدان الاتصال التفاعلي بالكائن الأصلي.', 'const state = reactive({ x: 10, y: 20 });\nconst { x, y } = toRefs(state);', 'const { a, b } = toRefs(reactiveObj)', 'Object of Linked Refs'],
+  ['Vue.js 3', 'v-memo', 'تخزين جزء من القالب مؤقتاً لتسريع الرسم', 'كاش قالب سرعة قوائم ضخمة تحسين', 'يمنع إعادة تحديث جزء فرعي من شجرة القالب إلا إذا تغيرت إحدى القيم المحددة في مصفوفة الاعتماديات.', '<div v-for="item in list" :key="item.id" v-memo="[item.selected]">\n  <p>{{ item.name }}</p>\n</div>', 'v-memo="[dep1, dep2]"', 'Template Subtree Memoization'],
+  ['Vue.js 3', '<Suspense>', 'تنسيق المكونات غير المتزامنة وحالة الانتظار', 'انتظار تحميل غير متزامن مكون فرعي', 'مكون مدمج ينسق عرض واجهة تحميل بديلة (#fallback) ريثما تكتمل كافة العمليات غير المتزامنة (async setup) في الأبناء.', '<Suspense>\n  <AsyncDashboard />\n  <template #fallback>جاري تحميل البيانات...</template>\n</Suspense>', '<Suspense><template #fallback /></Suspense>', 'Async Dependency Coordinator'],
+  ['Nuxt UI', '<UForm>', 'نموذج التحقق الذكي المتكامل في Nuxt UI', 'نموذج فورم تحقق اخطاء زود فالديت', 'يدير حالة النموذج والتحقق التلقائي من الحقول (مع مكتبات مثل Zod أو Valibot) ويعرض رسائل الخطأ بسهولة.', '<UForm :schema="schema" :state="state" @submit="onSubmit">\n  <UFormField label="البريد" name="email">\n    <UInput v-model="state.email" />\n  </UFormField>\n</UForm>', '<UForm :schema :state @submit>', 'Props: schema, state, validateOn'],
+  ['Nuxt UI', '<UCommandPalette>', 'لوحة الأوامر والبحث الشامل (Ctrl+K)', 'لوحة اوامر بحث سريع اختصار نافذة', 'مكون بحث وأوامر متقدم يتيح للمستخدم البحث في القوائم والصفحات وتنفيذ الأوامر السريعة عبر لوحة المفاتيح.', '<UCommandPalette v-model="selected" :groups="groups" placeholder="ابحث عن أمر أو صفحة..." />', '<UCommandPalette :groups placeholder />', 'Props: groups, modelValue, multiple'],
+  ['Nuxt UI', '<UToast> / useToast()', 'نظام الإشعارات العائمة الفورية', 'اشعار تنبيه عائم رسالة نجاح توست', 'يُظهر رسائل إشعار مؤقتة وأنيقة في زاوية الشاشة عبر استدعاء الدالة البرمجية useToast().add().', 'const toast = useToast();\ntoast.add({\n  title: "تم الحفظ بنجاح",\n  color: "success",\n  icon: "i-lucide-check-circle"\n});', 'const toast = useToast(); toast.add({...})', 'Composable Notification API'],
+  ['Nuxt UI', '<UBreadcrumb>', 'شريط مسار التنقل الفرعي (Breadcrumbs)', 'مسار تنقل صفحات تسلسل روابط موقع', 'يعرض المسار التسلسلي للصفحة الحالية داخل الموقع لمساعدة المستخدم على معرفة موقعه والعودة للأقسام الأعلى.', '<UBreadcrumb :items="[{ label: \'الرئيسية\', to: \'/\' }, { label: \'القاموس\' }]" />', '<UBreadcrumb :items separator-icon />', 'Props: items, separatorIcon']
+];
+
+/**
+ * Smart Hydration Function (hydrateItem)
+ * Transforms each compact tuple into a rich object with:
+ * - letter (A-Z index)
+ * - environment
+ * - useCases (3 practical Arabic points)
+ * - preview (interactive sandbox metadata)
+ * - compareJs & compareVue (side-by-side Vanilla JS vs Vue 3 / Nuxt UI comparison)
+ * - docs (official MDN / Vue.js / Nuxt UI documentation URL)
+ */
+function extractAlphabetLetter(term) {
+  const cleaned = term.replace(/^[^a-zA-Z]+/, '');
+  if (!cleaned) return 'A';
+  return cleaned.charAt(0).toUpperCase();
+}
+
+function resolveOfficialDocs(category, term) {
+  const clean = term.replace(/[<>/()@\s.:-]+/g, '').toLowerCase();
+  if (category === 'Nuxt UI') {
+    const compSlug = term
+      .replace(/[<>/]/g, '')
+      .split('/')[0]
+      .trim()
+      .replace(/^U/, '')
+      .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+      .toLowerCase();
+    if (term.includes('useToast')) return 'https://ui.nuxt.com/components/toast';
+    return `https://ui.nuxt.com/components/${compSlug}`;
+  }
+  if (category === 'Vue.js 3') {
+    if (term.includes('useFetch') || term.includes('useState')) {
+      return `https://nuxt.com/docs/api/composables/${clean}`;
+    }
+    return `https://vuejs.org/api/`;
+  }
+  if (category === 'HTML5') {
+    const tag = term.replace(/[<>/]/g, '').split(/[-/\s]/)[0].trim().toLowerCase();
+    if (tag === 'class') return 'https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/class';
+    return `https://developer.mozilla.org/en-US/docs/Web/HTML/Element/${tag}`;
+  }
+  if (category === 'CSS3') {
+    const prop = term.split(/[\s&/:@]+/).filter(Boolean)[0].toLowerCase();
+    return `https://developer.mozilla.org/en-US/docs/Web/CSS/${prop}`;
+  }
+  return `https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference`;
+}
+
+function hydrateItem(tuple, index) {
+  const [category, term, arabicTitle, keywords, description, codeExample, syntaxInfo, returnInfo] = tuple;
+  const letter = extractAlphabetLetter(term);
+
+  // Environment string
+  const envMap = {
+    'JavaScript': 'ES6+ / All Modern Browsers & Node.js',
+    'Vue.js 3': 'Vue 3.4+ (<script setup> & Composition API)',
+    'Nuxt UI': 'Nuxt 3 / Vue 3 + Tailwind CSS + Reka UI',
+    'HTML5': 'HTML5 Living Standard (W3C / WHATWG)',
+    'CSS3': 'CSS3 Modern Layout & Styling Engine'
+  };
+
+  // Practical Use Cases in Arabic
+  const useCasesMap = {
+    'JavaScript': [
+      `معالجة البيانات والمنطق التفاعلي باستخدام ${term} داخل مكونات الويب الحديثة.`,
+      `كتابة كود نظيف وقابل للصيانة في مشاريع Vue 3 و TypeScript وواجهات API.`,
+      `تحسين أداء العمليات وتقليل الأخطاء البرمجية أثناء تشغيل التطبيق في المتصفح.`
+    ],
+    'Vue.js 3': [
+      `إدارة الحالة التفاعلية وتحديث واجهة المستخدم تلقائياً عبر ${term} دون التلاعب اليدوي بـ DOM.`,
+      `تنظيم الكود داخل <script setup> وفصل المنطق القابل لإعادة الاستخدام (Composables).`,
+      `بناء مكونات سريعة الاستجابة وعالية الأداء في تطبيقات الصفحة الواحدة (SPA & SSR).`
+    ],
+    'Nuxt UI': [
+      `بناء واجهات مستخدم احترافية متوافقة مع الوضع الليلي (Dark Mode) فوراً عبر ${term}.`,
+      `توفير الوقت بفضل دعم الوصولية القياسية (WAI-ARIA) وتخصيص الألوان عبر Tailwind CSS.`,
+      `توحيد الهوية البصرية في لوحات التحكم والتطبيقات التفاعلية باستخدام خصائص جاهزة.`
+    ],
+    'HTML5': [
+      `بناء هيكل الصفحة الدلالي (Semantic HTML) باستخدام ${term} لتحسين محركات البحث (SEO).`,
+      `تعزيز إمكانية الوصول (Accessibility) لقارئات الشاشة ومستخدمي لوحة المفاتيح.`,
+      `تجهيز القوالب القياسية التي تعتمد عليها مكونات Vue.js و Nuxt UI.`
+    ],
+    'CSS3': [
+      `تنسيق وتخطيط الواجهات المتجاوبة مع جميع أحجام الشاشات عبر ${term}.`,
+      `إضافة لمسات بصرية عصرية مثل التوهج الضوئي والانتقالات الناعمة في الثيم الليلي.`,
+      `الدمج المباشر مع كلاسات Tailwind CSS للتحكم الدقيق بمظهر كل مكون.`
+    ]
+  };
+
+  // Side-by-side comparison generator (Vanilla JS vs Vue 3 / Nuxt UI)
+  let compareJs = '';
+  let compareVue = '';
+
+  if (category === 'Vue.js 3') {
+    compareJs = `// Vanilla JS (Imperative DOM Manipulation)\nlet stateValue = "Initial";\nconst el = document.querySelector("#output");\nfunction updateView(newVal) {\n  stateValue = newVal;\n  if (el) el.textContent = stateValue;\n}`;
+    compareVue = `// Vue 3 Composition API (${term})\n${codeExample}`;
+  } else if (category === 'Nuxt UI') {
+    compareJs = `<!-- HTML + Custom CSS + Manual JS -->\n<div class="custom-widget-wrapper">\n  <button id="raw-btn" class="manual-btn">\n    Action\n  </button>\n</div>\n<script>\n  document.getElementById("raw-btn").onclick = () => {};\n<\/script>`;
+    compareVue = `<!-- Nuxt UI v3 Declarative Component -->\n<template>\n  ${codeExample}\n</template>`;
+  } else if (category === 'JavaScript') {
+    compareJs = `// Traditional JS / DOM Workflow\n${codeExample}`;
+    compareVue = `// Inside Vue 3 <script setup>\nimport { ref, computed } from "vue";\nconst result = ref(null);\n// Using ${term} reactively:\n${codeExample}`;
+  } else if (category === 'HTML5') {
+    compareJs = `<!-- Standard Static HTML5 -->\n${codeExample}`;
+    compareVue = `<!-- Dynamic Vue 3 Template Binding -->\n<template>\n  ${codeExample.replace(/class="/, ':class="activeClass" class="')}\n</template>`;
+  } else {
+    compareJs = `/* Standard CSS3 Stylesheet */\n${codeExample}`;
+    compareVue = `<!-- Vue 3 Dynamic Style / Tailwind in Nuxt UI -->\n<template>\n  <div :style="dynamicStyle" class="transition-all duration-300">\n    Styled with ${term}\n  </div>\n</template>`;
+  }
+
+  return {
+    id: `term-${index}-${term.replace(/[^a-zA-Z0-9]/g, '')}`,
+    category,
+    term,
+    arabicTitle,
+    keywords: `${keywords} ${term.toLowerCase()} ${arabicTitle} ${category.toLowerCase()}`,
+    description,
+    codeExample,
+    syntaxInfo,
+    returnInfo,
+    letter,
+    environment: envMap[category] || 'Modern Web Platform',
+    useCases: useCasesMap[category] || useCasesMap['JavaScript'],
+    preview: {
+      badge: `${category} • Live Sandbox (${term})`,
+      label: `معاينة وتجربة حية لـ ${term} — (${arabicTitle})`,
+      sampleOutput: `${term} => Active & Ready`
+    },
+    compareJs,
+    compareVue,
+    docs: resolveOfficialDocs(category, term),
+    isFallback: false
+  };
+}
+
+/**
+ * Smart Dynamic Fallback Generator
+ * Guarantees ZERO "0 results" screens! Automatically builds a rich explanation card for any unknown query.
+ */
+function createSmartFallbackItem(rawQuery) {
+  const q = rawQuery.trim();
+  const isNuxtComp = /^<?u[a-z]+/i.test(q);
+  const isHtmlTag = /^<[a-z0-9]+>?$/i.test(q);
+  const isVueApi = /^(v-|use[A-Z]|on[A-Z]|define[A-Z])/i.test(q);
+
+  let category = 'JavaScript';
+  let docsUrl = `https://developer.mozilla.org/en-US/search?q=${encodeURIComponent(q)}`;
+
+  if (isNuxtComp) {
+    category = 'Nuxt UI';
+    const slug = q.replace(/[<>/]/g, '').replace(/^u/i, '').toLowerCase();
+    docsUrl = `https://ui.nuxt.com/components/${slug}`;
+  } else if (isVueApi) {
+    category = 'Vue.js 3';
+    docsUrl = `https://vuejs.org/api/`;
+  } else if (isHtmlTag) {
+    category = 'HTML5';
+    docsUrl = `https://developer.mozilla.org/en-US/search?q=${encodeURIComponent(q)}`;
+  }
+
+  const letter = extractAlphabetLetter(q);
+
+  return {
+    id: `fallback-${encodeURIComponent(q)}`,
+    category,
+    term: q,
+    arabicTitle: `مصطلح برمجي مخصص: "${q}" (توليد ذكي فوري)`,
+    keywords: q,
+    description: `قام المترجم الذكي الاحتياطي (Smart Dynamic Fallback) بتحليل الكلمة البرمجية "${q}" وتوليد بطاقة عمل فورية لها مع أمثلة استخدام تفاعلية وروابط مباشرة للتوثيق الرسمي في MDN و Vue.js و Nuxt UI.`,
+    codeExample: `// مثال تطبيقي ذكي للمصطلح: ${q}\nconst demoTarget = "${q}";\nfunction executeCustomTerm(input = demoTarget) {\n  console.log("تشغيل المصطلح البرمجي:", input);\n  return { term: input, status: "active", timestamp: Date.now() };\n}`,
+    syntaxInfo: `Dynamic Expression / Identifier (${q})`,
+    returnInfo: `Context-Dependent Return / Reactive Value`,
+    letter,
+    environment: 'Modern Web / Vue 3 / Nuxt UI Ecosystem',
+    useCases: [
+      `استخدام "${q}" ضمن بنية التطبيق أو البحث المتقدم في التوثيق الرسمي المعتمد.`,
+      `دمج المصطلح داخل مكونات Vue 3 التفاعلية واختبار مخرجاته مباشرة في صندوق المعاينة.`,
+      `الانتقال الفوري بضغطة زر إلى مرجع MDN أو توثيق Vue/Nuxt الرسمي لاستعراض كافة التفاصيل الدقيقة.`
+    ],
+    preview: {
+      badge: `Smart Dynamic Fallback • ${category}`,
+      label: `معاينة فورية للمصطلح المبحوث عنه: ${q}`,
+      sampleOutput: `Fallback("${q}") => Ready`
+    },
+    compareJs: `// Vanilla JS Implementation for "${q}"\nconst element = document.querySelector("[data-term='${q}']");\nconsole.log("Inspecting:", "${q}", element);`,
+    compareVue: `<!-- Vue 3 Composition API / Nuxt UI Integration -->\n<script setup>\nimport { ref } from "vue";\nconst customTerm = ref("${q}");\n<\/script>\n<template>\n  <UBadge color="primary">{{ customTerm }}</UBadge>\n</template>`,
+    docs: docsUrl,
+    isFallback: true
+  };
+}
+
+createApp({
+  setup() {
+    // Hydrate all 152 database terms
+    const allHydratedTerms = ref(RAW_TUPLES.map((t, idx) => hydrateItem(t, idx)));
+
+    // App Mode: 'dictionary' | 'playground'
+    const appMode = ref('dictionary');
+
+    // Search & Autocomplete State
+    const searchQuery = ref('');
+    const showDropdown = ref(false);
+    const isSearchFocused = ref(false);
+    const highlightedIndex = ref(0);
+    const searchInputRef = ref(null);
+    const searchContainerRef = ref(null);
+
+    // Filter State
+    const selectedCategory = ref('ALL');
+    const selectedLetter = ref('ALL');
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+
+    // Bookmarks persisted in localStorage
+    const STORAGE_KEY = 'vuelexicon_pro_bookmarks_v3';
+    const bookmarks = ref([]);
+
+    // Active Selected Term & Inner Detail Tab
+    const activeTerm = ref(allHydratedTerms.value[0]);
+    const detailTab = ref('code_preview');
+    const copiedToast = ref(false);
+
+    // Interactive Sandbox State inside Detail View
+    const demoCounter = ref(1);
+    const demoExecuted = ref(false);
+    const demoOutputText = ref('');
+
+    // Nuxt UI Interactive Prop Playground State
+    const pg = reactive({
+      color: 'primary',
+      variant: 'solid',
+      size: 'lg',
+      label: 'إطلاق مشروع Nuxt UI',
+      loading: false,
+      disabled: false,
+      roundedFull: false
+    });
+
+    // Quick Search Chips
+    const quickChips = [
+      { label: '⚡ computed()', query: 'computed' },
+      { label: '🟢 <UButton>', query: 'UButton' },
+      { label: '🔄 async / await', query: 'async' },
+      { label: '📦 <UModal>', query: 'UModal' },
+      { label: '🎨 flex (Flexbox)', query: 'flex' },
+      { label: '🔍 دالة', query: 'دالة' },
+      { label: '📊 جدول', query: 'جدول' },
+      { label: '🧩 تفاعلي', query: 'تفاعلي' }
+    ];
+
+    // Categories List
+    const categoriesList = [
+      { key: 'ALL', label: 'الكل' },
+      { key: 'HTML5', label: 'HTML5' },
+      { key: 'CSS3', label: 'CSS3' },
+      { key: 'JavaScript', label: 'JavaScript' },
+      { key: 'Vue.js 3', label: 'Vue.js 3' },
+      { key: 'Nuxt UI', label: 'Nuxt UI' },
+      { key: 'Bookmarks', label: '★ المفضلة' }
+    ];
+
+    // Helper: Match term against query (Prioritize startsWith for 1-letter instant search like "c" or "f")
+    function scoreTermMatch(item, rawQ) {
+      const q = rawQ.trim().toLowerCase();
+      if (!q) return 1;
+
+      const cleanTerm = item.term.replace(/^[<:@]+/, '').toLowerCase();
+      const fullTerm = item.term.toLowerCase();
+      const arabic = item.arabicTitle.toLowerCase();
+      const kw = item.keywords.toLowerCase();
+      const desc = item.description.toLowerCase();
+
+      if (cleanTerm === q || fullTerm === q) return 100;
+      if (cleanTerm.startsWith(q) || fullTerm.startsWith(q)) return 90;
+      if (arabic.startsWith(q)) return 85;
+      // For single English character queries (e.g. 'c' or 'f'), prioritize terms starting with that letter
+      if (q.length === 1 && /^[a-z]$/.test(q)) {
+        return cleanTerm.startsWith(q) ? 90 : 0;
+      }
+      if (cleanTerm.includes(q) || fullTerm.includes(q)) return 70;
+      if (arabic.includes(q) || kw.includes(q)) return 60;
+      if (desc.includes(q)) return 40;
+      return 0;
+    }
+
+    // Autocomplete Suggestions (Instant Dropdown)
+    const autocompleteSuggestions = computed(() => {
+      const q = searchQuery.value.trim();
+      if (!q) return [];
+
+      const scored = allHydratedTerms.value
+        .map(item => ({ item, score: scoreTermMatch(item, q) }))
+        .filter(entry => entry.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .map(entry => entry.item);
+
+      if (scored.length > 0) {
+        return scored.slice(0, 10);
+      }
+      // Smart Dynamic Fallback when no predefined term matches
+      return [createSmartFallbackItem(q)];
+    });
+
+    const isUsingFallback = computed(() => {
+      return autocompleteSuggestions.value.length === 1 && autocompleteSuggestions.value[0].isFallback;
+    });
+
+    // Category Base List (Before Letter/Search filter)
+    const categoryFilteredPool = computed(() => {
+      if (selectedCategory.value === 'ALL') return allHydratedTerms.value;
+      if (selectedCategory.value === 'Bookmarks') {
+        return allHydratedTerms.value.filter(t => bookmarks.value.includes(t.id));
+      }
+      return allHydratedTerms.value.filter(t => t.category === selectedCategory.value);
+    });
+
+    // Main Filtered Terms for Master Sidebar (Never 0 results!)
+    const filteredTerms = computed(() => {
+      let list = categoryFilteredPool.value;
+
+      if (selectedLetter.value !== 'ALL') {
+        list = list.filter(t => t.letter === selectedLetter.value);
+      }
+
+      const q = searchQuery.value.trim();
+      if (q) {
+        const scored = list
+          .map(item => ({ item, score: scoreTermMatch(item, q) }))
+          .filter(e => e.score > 0)
+          .sort((a, b) => b.score - a.score)
+          .map(e => e.item);
+
+        if (scored.length > 0) return scored;
+
+        // Try global pool if active category filter hid the match
+        const globalScored = allHydratedTerms.value
+          .map(item => ({ item, score: scoreTermMatch(item, q) }))
+          .filter(e => e.score > 0)
+          .sort((a, b) => b.score - a.score)
+          .map(e => e.item);
+
+        if (globalScored.length > 0) return globalScored;
+
+        // Otherwise return Smart Dynamic Fallback item so user NEVER sees 0 results
+        return [createSmartFallbackItem(q)];
+      }
+
+      if (list.length === 0) {
+        return [createSmartFallbackItem(selectedCategory.value === 'Bookmarks' ? 'المفضلة فارغة حالياً - جرب حفظ مصطلح ★' : selectedLetter.value)];
+      }
+
+      return list;
+    });
+
+    // Nuxt UI Components List for Advisor Mode
+    const nuxtUiComponents = computed(() => {
+      return allHydratedTerms.value.filter(t => t.category === 'Nuxt UI');
+    });
+
+    // Category Counter
+    function getCategoryCount(catKey) {
+      if (catKey === 'ALL') return allHydratedTerms.value.length;
+      if (catKey === 'Bookmarks') return bookmarks.value.length;
+      return allHydratedTerms.value.filter(t => t.category === catKey).length;
+    }
+
+    // Check if letter has terms in active category
+    function hasTermsForLetter(letter) {
+      return categoryFilteredPool.value.some(t => t.letter === letter);
+    }
+
+    // Category Badge Styling
+    function getCategoryBadgeClass(cat) {
+      const map = {
+        'JavaScript': 'bg-amber-500/15 text-amber-300 border-amber-500/40',
+        'Vue.js 3': 'bg-emerald-500/15 text-[#00DC82] border-[#00DC82]/40',
+        'Nuxt UI': 'bg-teal-500/20 text-teal-300 border-teal-400/50',
+        'HTML5': 'bg-orange-500/15 text-orange-300 border-orange-500/40',
+        'CSS3': 'bg-sky-500/15 text-sky-300 border-sky-500/40'
+      };
+      return map[cat] || 'bg-slate-800 text-slate-300 border-slate-600';
+    }
+
+    // Select Term & Sync Live Sandbox
+    function selectTerm(item) {
+      activeTerm.value = item;
+      resetInteractiveDemo();
+    }
+
+    function resetInteractiveDemo() {
+      demoCounter.value = 1;
+      demoExecuted.value = false;
+      if (activeTerm.value) {
+        demoOutputText.value = `${activeTerm.value.term} -> جاهز للتشغيل التفاعلي`;
+      }
+    }
+
+    function triggerInteractiveDemo() {
+      if (!activeTerm.value) return;
+      demoExecuted.value = true;
+      const t = activeTerm.value;
+      demoOutputText.value = `[Run #${demoCounter.value}] ${t.term} => ${t.returnInfo}`;
+      demoCounter.value++;
+    }
+
+    function mutateDemoValue() {
+      if (!activeTerm.value) return;
+      demoExecuted.value = true;
+      const samples = [
+        'Reactive State: { active: true, count: 42 }',
+        'DOM Updated in 0.4ms ⚡',
+        'Computed Cache Hit ✓',
+        'Nuxt UI Theme: #00DC82 (Emerald)'
+      ];
+      const pick = samples[Math.floor(Math.random() * samples.length)];
+      demoOutputText.value = `${activeTerm.value.term} :: ${pick}`;
+    }
+
+    // Search & Dropdown Actions
+    function openDropdown() {
+      isSearchFocused.value = true;
+      if (searchQuery.value.trim().length > 0) {
+        showDropdown.value = true;
+      }
+    }
+
+    function closeDropdown() {
+      showDropdown.value = false;
+      isSearchFocused.value = false;
+    }
+
+    function onSearchInput() {
+      appMode.value = 'dictionary';
+      highlightedIndex.value = 0;
+      showDropdown.value = searchQuery.value.trim().length > 0;
+      if (filteredTerms.value.length > 0) {
+        selectTerm(filteredTerms.value[0]);
+      }
+    }
+
+    function moveHighlight(step) {
+      if (!showDropdown.value || autocompleteSuggestions.value.length === 0) return;
+      const len = autocompleteSuggestions.value.length;
+      highlightedIndex.value = (highlightedIndex.value + step + len) % len;
+    }
+
+    function selectHighlighted() {
+      if (showDropdown.value && autocompleteSuggestions.value[highlightedIndex.value]) {
+        chooseTermFromDropdown(autocompleteSuggestions.value[highlightedIndex.value]);
+      } else if (filteredTerms.value.length > 0) {
+        selectTerm(filteredTerms.value[0]);
+        showDropdown.value = false;
+      }
+    }
+
+    function chooseTermFromDropdown(item) {
+      appMode.value = 'dictionary';
+      selectTerm(item);
+      showDropdown.value = false;
+    }
+
+    function clearSearch() {
+      searchQuery.value = '';
+      showDropdown.value = false;
+      if (searchInputRef.value) searchInputRef.value.focus();
+    }
+
+    function focusSearch() {
+      if (searchInputRef.value) {
+        searchInputRef.value.focus();
+        openDropdown();
+      }
+    }
+
+    function applyQuickChip(query) {
+      appMode.value = 'dictionary';
+      selectedCategory.value = 'ALL';
+      selectedLetter.value = 'ALL';
+      searchQuery.value = query;
+      showDropdown.value = true;
+      if (filteredTerms.value.length > 0) {
+        selectTerm(filteredTerms.value[0]);
+      }
+    }
+
+    function selectCategory(catKey) {
+      selectedCategory.value = catKey;
+      selectedLetter.value = 'ALL';
+      if (filteredTerms.value.length > 0) {
+        selectTerm(filteredTerms.value[0]);
+      }
+    }
+
+    function selectLetter(letter) {
+      selectedLetter.value = letter;
+      if (filteredTerms.value.length > 0) {
+        selectTerm(filteredTerms.value[0]);
+      }
+    }
+
+    function resetFilters() {
+      selectedCategory.value = 'ALL';
+      selectedLetter.value = 'ALL';
+      searchQuery.value = '';
+      showDropdown.value = false;
+      selectTerm(allHydratedTerms.value[0]);
+    }
+
+    function toggleBookmarksFilter() {
+      appMode.value = 'dictionary';
+      if (selectedCategory.value === 'Bookmarks') {
+        selectedCategory.value = 'ALL';
+      } else {
+        selectedCategory.value = 'Bookmarks';
+      }
+      if (filteredTerms.value.length > 0) {
+        selectTerm(filteredTerms.value[0]);
+      }
+    }
+
+    function openInDictionary(comp) {
+      appMode.value = 'dictionary';
+      selectedCategory.value = 'Nuxt UI';
+      selectedLetter.value = 'ALL';
+      searchQuery.value = '';
+      selectTerm(comp);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Bookmarks Management
+    function isBookmarked(id) {
+      return bookmarks.value.includes(id);
+    }
+
+    function toggleBookmark(id) {
+      const idx = bookmarks.value.indexOf(id);
+      if (idx === -1) {
+        bookmarks.value.push(id);
+      } else {
+        bookmarks.value.splice(idx, 1);
+      }
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(bookmarks.value));
+      } catch (e) {}
+    }
+
+    // Copy Code with Toast Notification
+    async function copyCode(codeText) {
+      try {
+        await navigator.clipboard.writeText(codeText);
+      } catch (e) {
+        const ta = document.createElement('textarea');
+        ta.value = codeText;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      copiedToast.value = true;
+      setTimeout(() => { copiedToast.value = false; }, 1800);
+    }
+
+    // Single-Pass Safe Syntax Highlighter
+    function highlightCode(raw) {
+      if (!raw) return '';
+      const escaped = raw
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+      const tokenRegex = /(\/\/.*$|\/\*[\s\S]*?\*\/|&lt;!--[\s\S]*?--&gt;)|("[^"\n]*"|'[^'\n]*'|`[^`]*`)|(&lt;\/?[A-Za-z0-9-]+|\/?&gt;)|\b(const|let|var|function|return|if|else|switch|case|default|for|of|in|async|await|try|catch|class|new|import|export|from|while|true|false|null|undefined)\b|\b(ref|reactive|computed|watch|watchEffect|onMounted|onUnmounted|defineProps|defineEmits|defineModel|provide|inject|nextTick|useFetch|useState|useToast|shallowRef|toRefs)\b/gm;
+
+      return escaped.replace(tokenRegex, (match, com, str, tag, kw, fn) => {
+        if (com) return `<span class="tok-com">${com}</span>`;
+        if (str) return `<span class="tok-str">${str}</span>`;
+        if (tag) return `<span class="tok-tag">${tag}</span>`;
+        if (kw) return `<span class="tok-kw">${kw}</span>`;
+        if (fn) return `<span class="tok-fn">${fn}</span>`;
+        return match;
+      });
+    }
+
+    // Nuxt UI Prop Playground Computed Classes & Generated Code
+    const computedPlaygroundButtonClasses = computed(() => {
+      const sizeMap = {
+        sm: 'px-3 py-1.5 text-xs',
+        md: 'px-4 py-2 text-sm',
+        lg: 'px-5 py-2.5 text-base',
+        xl: 'px-6 py-3.5 text-lg'
+      };
+      const radius = pg.roundedFull ? 'rounded-full' : 'rounded-xl';
+      const stateOpacity = (pg.disabled || pg.loading) ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer active:scale-95';
+
+      const palette = {
+        primary: {
+          solid: 'bg-[#00DC82] hover:bg-[#00b86b] text-[#020420] shadow-glow',
+          outline: 'bg-transparent border-2 border-[#00DC82] text-[#00DC82] hover:bg-[#00DC82]/10',
+          soft: 'bg-[#00DC82]/15 text-[#00DC82] hover:bg-[#00DC82]/25 border border-[#00DC82]/30',
+          ghost: 'bg-transparent text-[#00DC82] hover:bg-[#00DC82]/10'
+        },
+        neutral: {
+          solid: 'bg-slate-200 hover:bg-white text-slate-950',
+          outline: 'bg-transparent border-2 border-slate-500 text-slate-200 hover:bg-slate-800',
+          soft: 'bg-slate-800 text-slate-200 hover:bg-slate-700',
+          ghost: 'bg-transparent text-slate-300 hover:bg-slate-800/70'
+        },
+        warning: {
+          solid: 'bg-amber-400 hover:bg-amber-300 text-slate-950',
+          outline: 'bg-transparent border-2 border-amber-400 text-amber-300 hover:bg-amber-400/10',
+          soft: 'bg-amber-400/15 text-amber-300 hover:bg-amber-400/25 border border-amber-400/30',
+          ghost: 'bg-transparent text-amber-300 hover:bg-amber-400/10'
+        },
+        error: {
+          solid: 'bg-rose-500 hover:bg-rose-400 text-white',
+          outline: 'bg-transparent border-2 border-rose-500 text-rose-400 hover:bg-rose-500/10',
+          soft: 'bg-rose-500/15 text-rose-300 hover:bg-rose-500/25 border border-rose-500/30',
+          ghost: 'bg-transparent text-rose-400 hover:bg-rose-500/10'
+        }
+      };
+
+      const styleClass = palette[pg.color][pg.variant];
+      return `${sizeMap[pg.size]} ${radius} ${styleClass} ${stateOpacity}`;
+    });
+
+    const generatedUButtonCode = computed(() => {
+      const props = [
+        `color="${pg.color}"`,
+        `variant="${pg.variant}"`,
+        `size="${pg.size}"`,
+        `label="${pg.label}"`,
+        `icon="i-lucide-zap"`
+      ];
+      if (pg.loading) props.push(':loading="true"');
+      if (pg.disabled) props.push(':disabled="true"');
+      if (pg.roundedFull) props.push('class="rounded-full"');
+      return `<UButton\n  ${props.join('\n  ')}\n/>`;
+    });
+
+    // Global Keyboard Shortcut (Ctrl+K) & Outside Click Handler
+    function handleGlobalKeydown(e) {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        focusSearch();
+      }
+    }
+
+    function handleOutsideClick(e) {
+      if (searchContainerRef.value && !searchContainerRef.value.contains(e.target)) {
+        closeDropdown();
+      }
+    }
+
+    onMounted(() => {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) bookmarks.value = JSON.parse(saved);
+      } catch (e) {}
+
+      resetInteractiveDemo();
+      window.addEventListener('keydown', handleGlobalKeydown);
+      document.addEventListener('mousedown', handleOutsideClick);
+    });
+
+    onUnmounted(() => {
+      window.removeEventListener('keydown', handleGlobalKeydown);
+      document.removeEventListener('mousedown', handleOutsideClick);
+    });
+
+    return {
+      allHydratedTerms,
+      appMode,
+      searchQuery,
+      showDropdown,
+      isSearchFocused,
+      highlightedIndex,
+      searchInputRef,
+      searchContainerRef,
+      selectedCategory,
+      selectedLetter,
+      alphabet,
+      bookmarks,
+      activeTerm,
+      detailTab,
+      copiedToast,
+      demoCounter,
+      demoExecuted,
+      demoOutputText,
+      pg,
+      quickChips,
+      categoriesList,
+      autocompleteSuggestions,
+      isUsingFallback,
+      filteredTerms,
+      nuxtUiComponents,
+      computedPlaygroundButtonClasses,
+      generatedUButtonCode,
+      getCategoryCount,
+      hasTermsForLetter,
+      getCategoryBadgeClass,
+      selectTerm,
+      resetInteractiveDemo,
+      triggerInteractiveDemo,
+      mutateDemoValue,
+      openDropdown,
+      closeDropdown,
+      onSearchInput,
+      moveHighlight,
+      selectHighlighted,
+      chooseTermFromDropdown,
+      clearSearch,
+      focusSearch,
+      applyQuickChip,
+      selectCategory,
+      selectLetter,
+      resetFilters,
+      toggleBookmarksFilter,
+      openInDictionary,
+      isBookmarked,
+      toggleBookmark,
+      copyCode,
+      highlightCode
+    };
+  }
+}).mount('#app');
+</script>
+</body>
+</html>
